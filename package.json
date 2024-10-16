@@ -1,0 +1,80 @@
+{
+  "name": "project-upgrade",
+  "publisher": "Simplanova",
+  "displayName": "Project Upgrade Preparation",
+  "icon": "./simplanovalogo.jpg",
+  "description": "Project Upgrade Preparation tool will help you to make all needed project preparations to start project upgrade to extensions",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.93.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "extension.addRecReference",
+        "title": "SPLN: Add Record reference"
+      },
+      {
+        "command": "extension.cleanupRecReference",
+        "title": "SPLN: Add Record reference. Clean up!"
+      },
+      {
+        "command": "extension.addApplicationAreaAll",
+        "title": "SPLN: Add ApplicationArea = All"
+      },
+      {
+        "command": "extension.addSufix1",
+        "title": "SPLN: Add Sufix step 1"
+      },
+      {
+        "command": "extension.addSufix2",
+        "title": "SPLN: Add Sufix step 2. Resolve errors."
+      },
+      {
+        "command": "extension.addSufix3",
+        "title": "SPLN: Add Sufix step 3. Clean up!"
+      },
+      {
+        "command": "extension.addPrefix1",
+        "title": "SPLN: Add Prefix step 1"
+      },
+      {
+        "command": "extension.addPrefix2",
+        "title": "SPLN: Add Prefix step 2. Resolve errors."
+      },
+      {
+        "command": "extension.addPrefix3",
+        "title": "SPLN: Add Prefix step 3. Clean up!"
+      },
+      {
+        "command": "extension.renameExtensions",
+        "title": "SPLN: Rename extension objects"
+      },
+      {
+        "command": "extension.generalRefactoring",
+        "title": "SPLN: General Refactoring"
+      }
+    ]
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "pretest": "npm run lint",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.7",
+    "@types/node": "20.x",
+    "@types/vscode": "^1.93.0",
+    "@vscode/test-cli": "^0.0.10",
+    "@vscode/test-electron": "^2.4.1",
+    "eslint": "^9.9.1"
+  },
+  "dependencies": {
+    "jszip": "^3.10.1"
+  }
+}
