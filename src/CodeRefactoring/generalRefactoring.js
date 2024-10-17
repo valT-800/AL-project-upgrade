@@ -21,7 +21,7 @@ module.exports.generalRefactoring = async function () {
         updatedContent = refactorGetLanguageID(updatedContent);
         updatedContent = refactorObjectTableReference(updatedContent);
         if (targetMatches !== null) {
-            updatedContent = resolveScopeInternal(targetMatches[0], updatedContent);
+            updatedContent = resolveScopeProperty(targetMatches[0], updatedContent);
         }
         if (updatedContent !== fileContent) {
             // Write the updated content back to the file
@@ -121,31 +121,34 @@ function refactorObjectTableReference(content) {
 }
 
 /**
- * Refactor scope internal property based on project target
+ * Refactor scope property based on project target
  * @param {string} target
  * @param {string} content
  */
-function resolveScopeInternal(target, content) {
+function resolveScopeProperty(target, content) {
     let updatedContent = content;
-    if (target == 'Cloud') {
-        updatedContent = removeScopeInternal(content);
-    } else {
+    if (target == '"Cloud"') {
+        updatedContent = removeScopeInternalAndOnPrem(content);
+    } else if (target == '"OnPrem"') {
         updatedContent = content.replaceAll("[Scope('Internal')]", "[Scope('OnPrem')]");
     }
     return updatedContent;
 }
 
 /**
- * Remove [Scope('Internal')] procedure property
+ * Remove [Scope('Internal')] and [Scope('OnPrem')] procedure property
  * @param {string} content
  */
-function removeScopeInternal(content) {
+function removeScopeInternalAndOnPrem(content) {
 
     let targetString = "[Scope('Internal')]";
     // Split the content into an array of lines
     let lines = content.split('\n');
     // Filter out any line that contains the target string
     let filteredLines = lines.filter(line => !line.includes(targetString));
+    targetString = "[Scope('OnPrem')]";
+    filteredLines = filteredLines.filter(line => !line.includes(targetString));
+
     // Join the remaining lines back into a single string
     let updatedContent = filteredLines.join('\n');
 
