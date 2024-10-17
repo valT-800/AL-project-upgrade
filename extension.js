@@ -21,8 +21,10 @@ const { changeReportsLayoutPath } = require('./src/ProjectPreparation/changeRepo
  */
 function activate(context) {
 
+	// Declare global afix values to remember it when running different commands
 	let sufix = '';
 	let prefix = '';
+
 	// Use the console to output diagnostic information (console.log) and errors (console.error)
 	// This line of code will only be executed once when your extension is activated
 	console.log('Congratulations, your extension "project-upgrade" is now active!');
@@ -39,13 +41,21 @@ function activate(context) {
 	const projectPrepCommand = vscode.commands.registerCommand('extension.projectPrep', async function () {
 		await vscode.commands.executeCommand('workbench.action.closeAllGroups');
 		vscode.window.showInformationMessage(await addApplicationArea());
+		vscode.window.showInformationMessage(await changeReportsLayoutPath());
 
-		// Get the afix manually from user
-		const provideAfix = async () => {
-			const answer = await vscode.window.showInformationMessage('Does objects have a prefix or sufix already added?', 'No', 'Yes');
+		const provideAfix = async (/** @type {string} */ afix) => {
+			let message = 'Does objects have an afix already added?';
+			if (afix !== '') {
+				const confirmAfix = await vscode.window.showInformationMessage(`Confirm saved afix - ${afix}`, 'Confirm', 'Decline');
+				if (confirmAfix == 'Confirm') return afix;
+				else message = 'Does objects have another afix already added?';
+			}
+			// Know afix value from user
+			const answer = await vscode.window.showInformationMessage(message, 'No', 'Yes');
 			if (answer == 'Yes') {
 				const afix = await vscode.window.showInputBox({ prompt: 'Enter the afix to add' });
 				if (!afix) {
+					// Repeat function when afix should've been provided but wasn't
 					provideAfix();
 				}
 				return afix;
@@ -53,13 +63,19 @@ function activate(context) {
 			return '';
 		}
 
+		// Get afix from the saved sufix and prefix values
 		let afix = '';
 		if (sufix != '') afix = sufix;
 		else if (prefix != '') afix = prefix;
-		else afix = await provideAfix(); //if no sufix or prefix where added with extension get the afix from user
+		// Confirm afix saved by the system or get the afix from user
+		afix = await provideAfix(afix);
 
-		vscode.window.showInformationMessage(await renameALExtensions(afix));
-		vscode.window.showInformationMessage(await changeReportsLayoutPath());
+		// Know from user if extension market should be added to extension objects name
+		const answer = await vscode.window.showInformationMessage('Do you want to add extension marker to an extension objects names?', 'No', 'Yes');
+		let addExtMarker = false;
+		if (answer == 'Yes') addExtMarker = true;
+
+		vscode.window.showInformationMessage(await renameALExtensions(afix, addExtMarker));
 	});
 
 	const addSufix1Command = vscode.commands.registerCommand('extension.addSufix1', async function () {
@@ -72,6 +88,7 @@ function activate(context) {
 			return;
 		}
 		vscode.window.showInformationMessage(await addSufix1(sufix));
+		prefix = '';
 	});
 	const addSufix2Command = vscode.commands.registerCommand('extension.addSufix2', async function () {
 		await vscode.commands.executeCommand('workbench.action.closeAllGroups');
@@ -101,6 +118,7 @@ function activate(context) {
 			return;
 		}
 		vscode.window.showInformationMessage(await addPrefix1(prefix));
+		sufix = '';
 	});
 	const addPrefix2Command = vscode.commands.registerCommand('extension.addPrefix2', async function () {
 		await vscode.commands.executeCommand('workbench.action.closeAllGroups');
