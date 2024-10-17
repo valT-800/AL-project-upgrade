@@ -24,8 +24,8 @@
         "title": "SPLN: Add Record reference. Clean up!"
       },
       {
-        "command": "extension.addApplicationAreaAll",
-        "title": "SPLN: Add ApplicationArea = All"
+        "command": "extension.projectPrep",
+        "title": "SPLN: Prepare project for upgrade"
       },
       {
         "command": "extension.addSufix1",
@@ -50,10 +50,6 @@
       {
         "command": "extension.addPrefix3",
         "title": "SPLN: Add Prefix step 3. Clean up!"
-      },
-      {
-        "command": "extension.renameExtensions",
-        "title": "SPLN: Rename extension objects"
       },
       {
         "command": "extension.generalRefactoring",
