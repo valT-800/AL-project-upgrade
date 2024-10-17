@@ -20,7 +20,6 @@ module.exports.generalRefactoring = async function () {
         updatedContent = await refactorCrossReference(file, updatedContent);
         updatedContent = refactorGetLanguageID(updatedContent);
         updatedContent = refactorObjectTableReference(updatedContent);
-        updatedContent = changeReportsLayoutPath(updatedContent);
         if (targetMatches !== null) {
             updatedContent = resolveScopeInternal(targetMatches[0], updatedContent);
         }
@@ -121,19 +120,6 @@ function refactorObjectTableReference(content) {
     return updatedContent;
 }
 
-/**
- * @param {string} content
- */
-function changeReportsLayoutPath(content) {
-    const layoutPattern = /\b(RDLCLayout|WordLayout|ExcelLayout)\s*=\s*([^;]+);/gi;
-    let updatedContent = content.replace(layoutPattern, (match, layoutType, layoutPath) => {
-        if (!layoutPath.includes('./SRC/Custom/Reports/')) {
-            return match.replace(layoutPath, `'./SRC/Custom/Reports/${layoutType}s/${layoutPath.slice(3)}`);
-        }
-        return match;
-    });
-    return updatedContent;
-}
 /**
  * Refactor scope internal property based on project target
  * @param {string} target
