@@ -4,6 +4,7 @@ module.exports.addRecReference = async function () {
 
     const customALpages = await getALFiles('src/Custom/Pages');
     const ALpageext = await getALFiles('src/Standard/PageExtensions');
+    if (!customALpages && !ALpageext) return;
     const ALfiles = customALpages.concat(ALpageext);
 
     if (ALfiles.length === 0)

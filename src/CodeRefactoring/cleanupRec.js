@@ -3,6 +3,7 @@ const { getALFiles, writeAndSaveFile, getDocumentErrors, getFileContent, getText
 module.exports.cleanupRecReference = async function () {
     let customALpages = await getALFiles('src/Custom/Pages');
     let ALpageext = await getALFiles('src/Standard/PageExtensions');
+    if (!customALpages && !ALpageext) return;
     let ALfiles = customALpages.concat(ALpageext);
 
     if (ALfiles.length === 0)

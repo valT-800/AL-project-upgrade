@@ -2,7 +2,7 @@ const { getALFiles, writeAndSaveFile, getTextDocumentFromFilePath, getDocumentEr
 
 module.exports.generalRefactoring = async function () {
     const ALfiles = await getALFiles('src');
-
+    if (!ALfiles) return;
     if (ALfiles.length === 0)
         return 'No AL files found in the src directory.';
 

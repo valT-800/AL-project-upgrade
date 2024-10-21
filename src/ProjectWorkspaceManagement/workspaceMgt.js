@@ -32,12 +32,7 @@ module.exports.getALFiles = async function (directory) {
 
     try {
         const alFiles = await collectFiles(srcFolderPath);
-
-        if (alFiles.length === 0) {
-            return;
-        } else {
-            return alFiles;
-        }
+        return alFiles;
     } catch (error) {
         vscode.window.showErrorMessage(`Error reading src folder: ${error.message}`);
     }

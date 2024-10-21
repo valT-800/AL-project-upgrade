@@ -7,7 +7,7 @@ module.exports.addSufix1 = async function (/** @type {string} */ sufix) {
 
     const customALfiles = await getALFiles('src/Custom');
     const standardALfiles = await getALFiles('src/Standard');
-
+    if (!customALfiles && !standardALfiles) return;
     if (customALfiles.length === 0 && standardALfiles.length === 0)
         return 'No AL files found in the src directory.';
 

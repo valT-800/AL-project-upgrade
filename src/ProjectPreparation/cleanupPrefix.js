@@ -2,7 +2,7 @@ const { getALFiles, writeAndSaveFile, getDocumentErrors, getFileContent, getText
 
 module.exports.cleanupPrefix = async function (/** @type {string} */ prefix) {
     const ALfiles = await getALFiles('src');
-
+    if (!ALfiles) return;
     if (ALfiles.length === 0)
         return 'No AL files found in the src directory.';
 

@@ -3,7 +3,7 @@ const { getALFiles, writeFile, getFileContent } = require('../ProjectWorkspaceMa
 module.exports.renameALExtensions = async function (/** @type {string} */ afix, /** @type {boolean} */ addExtMarker) {
 
     let standardALfiles = await getALFiles('src/Standard');
-
+    if (!standardALfiles) return;
     if (standardALfiles.length === 0)
         return 'No AL files of extension objects found in the src directory.';
 
