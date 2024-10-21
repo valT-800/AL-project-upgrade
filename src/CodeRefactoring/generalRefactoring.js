@@ -7,8 +7,10 @@ module.exports.generalRefactoring = async function () {
         return 'No AL files found in the src directory.';
 
     // Get project target from app.json file
-    const appFilePath = getFullFilePath('app.json');
+    const appFilePath = await getFullFilePath('app.json');
+    if (!appFilePath) return;
     const appFileContent = await getFileContent(appFilePath);
+    if (!appFileContent) return 'No manifest file exists. Please add app.json file to continue!';
     const targetMatches = appFileContent.match(/(?<="target": )("\w+")/g);
 
     // Declare when any files have been changed
@@ -45,8 +47,10 @@ module.exports.generalRefactoringInActiveFiles = async function () {
         return 'No AL files are opened in the workspace.';
 
     // Get project target from app.json file
-    const appFilePath = getFullFilePath('app.json');
+    const appFilePath = await getFullFilePath('app.json');
+    if (!appFilePath) return;
     const appFileContent = await getFileContent(appFilePath);
+    if (!appFileContent) return 'No manifest file exists. Please add app.json file to continue!';
     const targetMatches = appFileContent.match(/(?<="target": )("\w+")/g);
 
     // Declare when any files have been changed
