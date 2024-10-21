@@ -1,4 +1,4 @@
-const { getALFiles, writeAndSaveFile, getTextDocumentFromFilePath, getDocumentErrors, getFileContent, getFullFilePath } = require('../ProjectWorkspaceManagement/workspaceMgt.js');
+const { getALFiles, writeAndSaveFile, getTextDocumentFromFilePath, getDocumentErrors, getFileContent, getFullFilePath, getOpenedALDocuments, writeAndSaveDocument } = require('../ProjectWorkspaceManagement/workspaceMgt.js');
 
 module.exports.generalRefactoring = async function () {
     const ALfiles = await getALFiles('src');
@@ -15,9 +15,10 @@ module.exports.generalRefactoring = async function () {
     let changed = false;
     // Go through every src directory AL file
     for (const file of ALfiles) {
-        const fileContent = await getFileContent(file);
-        let updatedContent = fileContent;
-        updatedContent = await refactorCrossReference(file, updatedContent);
+        // Get AL file document
+        const document = await getTextDocumentFromFilePath(file);
+        const fileContent = document.getText();
+        let updatedContent = await refactorCrossReference(document, fileContent);
         updatedContent = refactorGetLanguageID(updatedContent);
         updatedContent = refactorObjectTableReference(updatedContent);
         if (targetMatches !== null) {
@@ -36,16 +37,50 @@ module.exports.generalRefactoring = async function () {
     return 'General refactoring completed.';
 }
 
+module.exports.generalRefactoringInActiveFiles = async function () {
+
+    const ALdocs = getOpenedALDocuments();
+    if (!ALdocs) return;
+    if (ALdocs.length === 0)
+        return 'No AL files are opened in the workspace.';
+
+    // Get project target from app.json file
+    const appFilePath = getFullFilePath('app.json');
+    const appFileContent = await getFileContent(appFilePath);
+    const targetMatches = appFileContent.match(/(?<="target": )("\w+")/g);
+
+    // Declare when any files have been changed
+    let changed = false;
+    // Go through every opened AL file
+    for (const document of ALdocs) {
+        const fileContent = document.getText();
+        let updatedContent = await refactorCrossReference(document, fileContent);
+        updatedContent = refactorGetLanguageID(updatedContent);
+        updatedContent = refactorObjectTableReference(updatedContent);
+        if (targetMatches !== null) {
+            updatedContent = resolveScopeProperty(targetMatches[0], updatedContent);
+        }
+        if (updatedContent !== fileContent) {
+            // Write the updated content back to the file
+            await writeAndSaveDocument(document, updatedContent);
+            // Declare file modification
+            changed = true;
+        }
+    }
+    // Recommends to run command again when some content was changed and could have more errors
+    if (changed)
+        return 'Please run this command again after few seconds!';
+    return 'General refactoring completed.';
+}
+
 /**
  * Replace Cross-Reference with Item Reference
- * @param {string} file
  * @param {string} content
+ * @param {import("vscode").TextDocument} document
  */
-async function refactorCrossReference(file, content) {
+async function refactorCrossReference(document, content) {
     try {
         const errors = [' is removed. Reason: Cross-Reference replaced by Item Reference feature.. Tag: 22.0.'];
-        // Get AL file document
-        const document = await getTextDocumentFromFilePath(file);
         // Get all document errors of removed Cross-Reference
         const diagnostics = await getDocumentErrors(document, errors);
         // Return original content when no errors found

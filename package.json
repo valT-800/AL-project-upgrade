@@ -57,7 +57,11 @@
       },
       {
         "command": "extension.generalRefactoring",
-        "title": "SPLN: General Refactoring"
+        "title": "SPLN: General Refactoring in active project"
+      },
+      {
+        "command": "extension.generalActiveRefactoring",
+        "title": "SPLN: General Refactoring in active files"
       }
     ]
   },

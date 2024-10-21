@@ -8,7 +8,7 @@ const { addPrefix1, addPrefix2 } = require('./src/ProjectPreparation/addPrefix')
 const { addRecReference, addRecReferenceInActiveFiles } = require('./src/CodeRefactoring/addRec.js');
 const { addApplicationArea } = require('./src/ProjectPreparation/addApplicationArea');
 const { renameALExtensions } = require('./src/ProjectPreparation/renameExtensions');
-const { generalRefactoring } = require('./src/CodeRefactoring/generalRefactoring');
+const { generalRefactoring, generalRefactoringInActiveFiles } = require('./src/CodeRefactoring/generalRefactoring');
 const { cleanupRecReference } = require('./src/CodeRefactoring/cleanupRec');
 const { cleanupPrefix } = require('./src/ProjectPreparation/cleanupPrefix');
 const { cleanupSufix } = require('./src/ProjectPreparation/cleanupSufix');
@@ -146,6 +146,9 @@ function activate(context) {
 		await vscode.commands.executeCommand('workbench.action.closeAllGroups');
 		vscode.window.showInformationMessage(await generalRefactoring());
 	});
+	const generalActiveRefactoringCommand = vscode.commands.registerCommand('extension.generalActiveRefactoring', async function () {
+		vscode.window.showInformationMessage(await generalRefactoringInActiveFiles());
+	});
 
 	context.subscriptions.push(projectPrepCommand);
 	context.subscriptions.push(addRecCommand);
@@ -158,6 +161,7 @@ function activate(context) {
 	context.subscriptions.push(addPrefix2Command);
 	context.subscriptions.push(addPrefix3Command);
 	context.subscriptions.push(generalRefactoringCommand);
+	context.subscriptions.push(generalActiveRefactoringCommand);
 }
 
 // This method is called when your extension is deactivated
