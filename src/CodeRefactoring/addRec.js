@@ -1,4 +1,4 @@
-const { getALFiles, writeAndSaveFile, getDocumentErrors, getTextDocumentFromFilePath, getFileContent } = require('../ProjectWorkspaceManagement/workspaceMgt');
+const { getALFiles, writeAndSaveFile, getDocumentErrors, getTextDocumentFromFilePath, getFileContent, getOpenedALDocuments, writeAndSaveDocument } = require('../ProjectWorkspaceManagement/workspaceMgt');
 
 module.exports.addRecReference = async function () {
 
@@ -17,8 +17,10 @@ module.exports.addRecReference = async function () {
     for (const file of ALfiles) {
         // Read file content into text
         const fileContent = await getFileContent(file);
+        // Get AL file document
+        const document = await getTextDocumentFromFilePath(file);
         // Add Rec reference
-        const updatedContent = await addRecReferenceInCode(file, fileContent);
+        const updatedContent = await addRecReferenceInCode(document, fileContent);
         if (updatedContent !== fileContent) {
             // Write the updated content back to the file
             await writeAndSaveFile(file, updatedContent);
@@ -31,17 +33,43 @@ module.exports.addRecReference = async function () {
     return ('Rec reference added');
 }
 
+module.exports.addRecReferenceInActiveFiles = async function () {
+
+    const ALdocs = getOpenedALDocuments();
+    if (!ALdocs) return;
+    if (ALdocs.length === 0)
+        return 'No AL files are opened in the workspace.';
+
+    // Declare when any files have been changed
+    let changed = false;
+
+    // Go through every page and pageextension AL file
+    for (const document of ALdocs) {
+        // Read file content into text
+        const fileContent = document.getText();
+        // Add Rec reference
+        const updatedContent = await addRecReferenceInCode(document, fileContent);
+        if (updatedContent !== fileContent) {
+            // Write the updated content back to the file
+            await writeAndSaveDocument(document, updatedContent);
+            // Declare file modification
+            changed = true;
+        }
+    }
+    if (changed)
+        return 'Please run this command again after few seconds!';
+    return ('Rec reference added');
+}
+
 /**
- * Add Rec reference to fields and procedures causing a warning or error in pages and pageextensions
- * @param {string} file
+ * Add Rec reference to fields and procedures causing a warning or error
+ * @param {import("vscode").TextDocument} document
  * @param {string} content
  */
-async function addRecReferenceInCode(file, content) {
+async function addRecReferenceInCode(document, content) {
     try {
         const warnings = ["Use of implicit 'with' will be removed in the future. Qualify with 'Rec'. This warning will become an error in a future release."];
 
-        // Get AL file document
-        const document = await getTextDocumentFromFilePath(file);
         // Get all document warnings of missing Rec reference
         let diagnostics = await getDocumentErrors(document, warnings);
         // When no warnings found get errors associated with missing Rec reference

@@ -17,11 +17,15 @@
     "commands": [
       {
         "command": "extension.addRecReference",
-        "title": "SPLN: Add Record reference"
+        "title": "SPLN: Add Record reference in active project"
       },
       {
         "command": "extension.cleanupRecReference",
         "title": "SPLN: Add Record reference. Clean up!"
+      },
+      {
+        "command": "extension.addRecReferenceInActiveFiles",
+        "title": "SPLN: Add Record reference in active files"
       },
       {
         "command": "extension.projectPrep",

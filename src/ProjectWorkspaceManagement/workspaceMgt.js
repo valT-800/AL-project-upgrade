@@ -35,6 +35,26 @@ module.exports.getALFiles = async function (directory) {
         return alFiles;
     } catch (error) {
         vscode.window.showErrorMessage(`Error reading src folder: ${error.message}`);
+        return;
+    }
+}
+/**
+ * Get all AL files from opened in workspace
+ */
+module.exports.getOpenedALDocuments = function () {
+    try {
+        let textDocuments = vscode.workspace.textDocuments;
+        if (!textDocuments) {
+            vscode.window.showErrorMessage('No workspace folder is open!');
+            return;
+        }
+        if (textDocuments.length === 0) return [];
+        else textDocuments = textDocuments.filter(doc => doc.languageId == 'al');
+        return textDocuments;
+
+    } catch (error) {
+        vscode.window.showErrorMessage(`Error reading workspace files: ${error.message}`);
+        return;
     }
 }
 
@@ -96,6 +116,29 @@ module.exports.writeAndSaveFile = async function (filePath, content) {
         const fileUri = vscode.Uri.file(filePath);
         // Open the text document using the URI
         const document = await vscode.workspace.openTextDocument(fileUri);
+        const editor = await vscode.window.showTextDocument(document);
+        await editor.edit(editBuilder => {
+            const lastLine = document.lineCount - 1;
+            const lastCharacter = document.lineAt(lastLine).text.length;
+            editBuilder.replace(new vscode.Range(0, 0, lastLine, lastCharacter), content);
+        });
+        // Save the file after modification
+        if (document.isDirty) {
+            await document.save();
+        }
+    } catch (error) {
+        console.error(`Error saving document: ${error}`);
+        return undefined;
+    }
+}
+
+/**
+ * Write updated content with an editor and save the document
+ * @param {vscode.TextDocument} document
+ * @param {string} content - new text document content
+ */
+module.exports.writeAndSaveDocument = async function (document, content) {
+    try {
         const editor = await vscode.window.showTextDocument(document);
         await editor.edit(editBuilder => {
             const lastLine = document.lineCount - 1;
