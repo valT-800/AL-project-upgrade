@@ -13,6 +13,7 @@ const { cleanupRecReference } = require('./src/CodeRefactoring/cleanupRec');
 const { cleanupPrefix } = require('./src/ProjectPreparation/cleanupPrefix');
 const { cleanupSufix } = require('./src/ProjectPreparation/cleanupSufix');
 const { changeReportsLayoutPath } = require('./src/ProjectPreparation/changeReportLayoutsPath');
+const { structurizeProject } = require('./src/ProjectPreparation/structurizeProject');
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -43,6 +44,7 @@ function activate(context) {
 
 	const projectPrepCommand = vscode.commands.registerCommand('extension.projectPrep', async function () {
 		await vscode.commands.executeCommand('workbench.action.closeAllGroups');
+		vscode.window.showInformationMessage(await structurizeProject());
 		vscode.window.showInformationMessage(await addApplicationArea());
 		vscode.window.showInformationMessage(await changeReportsLayoutPath());
 

@@ -43,6 +43,26 @@ module.exports.getALFiles = async function (directory) {
         return;
     }
 }
+
+module.exports.getAllFiles = async function () {
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    if (!workspaceFolders) {
+        vscode.window.showErrorMessage('No workspace folder is open!');
+        return;
+    }
+    let files = [];
+    // Read the directory contents
+    const dirents = await fs.promises.readdir(workspaceFolders[0].uri.fsPath, { withFileTypes: true });
+    for (const dirent of dirents) {
+        const fullPath = path.join(workspaceFolders[0].uri.fsPath, dirent.name);
+        if (dirent.isFile()) {
+            // Add the AL file to the list
+            files.push(fullPath);
+        }
+    }
+    return files;
+}
+
 /**
  * Get all AL files from opened in workspace
  */
@@ -296,5 +316,63 @@ async function directoryExists(directory) {
     } catch (error) {
         // If an error occurs, the directory does not exist
         return false;
+    }
+}
+/**
+ * @param {string} folder
+ */
+module.exports.folderExists = async function (folder) {
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    if (!workspaceFolders) {
+        vscode.window.showErrorMessage('No workspace folder is open!');
+        return;
+    }
+    // Combine root project folder path with directory provided
+    const srcFolderPath = path.join(workspaceFolders[0].uri.fsPath, folder);
+    return await directoryExists(srcFolderPath);
+}
+
+/**
+ * @param {string} folder
+ */
+module.exports.createFolder = async function (folder) {
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    if (!workspaceFolders) {
+        vscode.window.showErrorMessage('No workspace folder is open!');
+        return;
+    }
+    try {
+        // Combine root project folder path with directory provided
+        const folderPath = path.join(workspaceFolders[0].uri.fsPath, folder);
+        const folderUri = vscode.Uri.file(folderPath);
+
+        vscode.workspace.fs.createDirectory(folderUri);
+    } catch (error) {
+        vscode.window.showErrorMessage(`Error creating folder: ${error}`);
+        return;
+    }
+}
+
+/**
+ * @param {string} file
+ */
+module.exports.moveFile = async function (file, /** @type {string} */ targetDirectory) {
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    if (!workspaceFolders) {
+        vscode.window.showErrorMessage('No workspace folder is open!');
+        return;
+    }
+    // Specify the source file path and the target directory path
+    const sourceFilePath = vscode.Uri.file(file);
+    const fullTargetDirectory = path.join(workspaceFolders[0].uri.fsPath, targetDirectory);
+    const targetDirectoryPath = vscode.Uri.file(fullTargetDirectory);
+
+    // Construct the new destination file path by appending the file name to the target directory
+    const targetFilePath = vscode.Uri.joinPath(targetDirectoryPath, path.basename(file));
+    try {
+        // Use the rename method to move the file
+        await vscode.workspace.fs.rename(sourceFilePath, targetFilePath, { overwrite: false });
+    } catch (error) {
+        vscode.window.showErrorMessage('Error moving the file: ' + error);
     }
 }
