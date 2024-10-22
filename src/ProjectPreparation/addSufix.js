@@ -205,7 +205,7 @@ async function addSufixToReferences(file, content, sufix, errors) {
                 let updatedSnippet = errorSnippet.replace(calcfieldPattern, (match, method, field) => {
                     if (!field.includes(`_${sufix}`)) {
                         // Add sufix to field name with quotes
-                        if (field.startsWith('"')) return match.replace(field, `"${field.slice(0, -1)}_${sufix}"`);
+                        if (field.startsWith('"')) return match.replace(field, `"${field.slice(1, -1)}_${sufix}"`);
                         // Add sufix to field name without quotes
                         else return match.replace(field, `${field}_${sufix}`);
                     }
