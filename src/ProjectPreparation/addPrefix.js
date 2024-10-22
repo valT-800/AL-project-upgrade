@@ -11,6 +11,9 @@ module.exports.addPrefix1 = async function (/** @type {string} */ prefix) {
     if (customALfiles.length === 0 && standardALfiles.length === 0)
         return 'No AL files found in the src directory.';
 
+    // Declare when any files have been changed
+    let changed = false;
+
     // Go through every src/Custom directory file
     for (const file of customALfiles) {
         const fileContent = await getFileContent(file);
@@ -20,6 +23,8 @@ module.exports.addPrefix1 = async function (/** @type {string} */ prefix) {
             await writeAndSaveFile(file, updatedContent);
             // Rename the file with prefix added
             //await addPrefixToFile(file, prefix);
+            // Declare file modification
+            changed = true;
         }
     }
     // Go through every src/Standard directory file
@@ -34,8 +39,12 @@ module.exports.addPrefix1 = async function (/** @type {string} */ prefix) {
             await writeAndSaveFile(file, updatedContent);
             // Rename the file with prefix added
             //await addPrefixToFile(file, prefix);
+            // Declare file modification
+            changed = true;
         }
     }
+
+    if (!changed) return 'All relevant object already have a provided Prefix added.';
     return 'Prefix added to all relevant objects in src. \nTo resolve errors run "SPLN: Add Prefix step 2. Resolve errors"';
 }
 
@@ -128,7 +137,7 @@ function addPrefixToTableFields(content, prefix) {
 
     // Add prefix to table fields
     let updatedContent = content.replace(tableFieldPattern, (match, fieldNumber, fieldName) => {
-        if (!fieldName.startsWith(`${prefix}_`) || !fieldName.startsWith(`"${prefix}_`)) {
+        if (!fieldName.startsWith(`${prefix}_`) && !fieldName.startsWith(`"${prefix}_`)) {
             // Add prefix to the field name with quotes
             if (fieldName.startsWith('"'))
                 return match.replace(fieldName, `"${prefix}_${fieldName.slice(1, -1)}"`);
@@ -302,7 +311,7 @@ function addPrefixToPageReportContent(content, prefix) {
 
     // Add prefix to actions
     let updatedContent = content.replace(actionPattern, (match, actionName) => {
-        if (!actionName.startsWith(`${prefix}_`) || !actionName.startsWith(`"${prefix}_`)) {
+        if (!actionName.startsWith(`${prefix}_`) && !actionName.startsWith(`"${prefix}_`)) {
             // Add prefix to action name with quotes
             if (actionName.startsWith('"'))
                 return match.replace(actionName, `"${prefix}_${actionName.slice(1, -1)}"`);
@@ -313,7 +322,7 @@ function addPrefixToPageReportContent(content, prefix) {
     });
     // Add prefix to report layouts
     updatedContent = updatedContent.replace(reportLayoutPattern, (match, layoutName) => {
-        if (!layoutName.startsWith(`${prefix}_`) || !layoutName.startsWith(`"${prefix}_`)) {
+        if (!layoutName.startsWith(`${prefix}_`) && !layoutName.startsWith(`"${prefix}_`)) {
             // Add prefix to layout name with quotes
             if (layoutName.startsWith('"'))
                 return match.replace(layoutName, `"${prefix}_${layoutName.slice(1, -1)}"`);
@@ -337,7 +346,7 @@ function addPrefixToProcedures(content, prefix) {
     const procedurePattern = /\bprocedure\s+("[^"]+"|\w+)\s+\(/g;
 
     let updatedContent = content.replace(procedurePattern, (match, procedureName) => {
-        if (!procedureName.startsWith(`${prefix}_`) || !procedureName.startsWith(`"${prefix}_`)) {
+        if (!procedureName.startsWith(`${prefix}_`) && !procedureName.startsWith(`"${prefix}_`)) {
             // Add prefix to procedure name with quotes
             if (procedureName.startsWith('"'))
                 return match.replace(procedureName, `"${prefix}_${procedureName.slice(1, -1)}"`);
@@ -361,7 +370,7 @@ function addPrefixToALObjectName(content, prefix) {
     const objectPattern = /\b(page|table|codeunit|report|enum|query|xmlport|profile|controladdin|permissionset|interface|tableextension|pageextension|reportextension|enumextension|permissionsetextension)\s+(\d+)\s+("[^"]+"|\w+)\s*(\{|extends)/g;
 
     let updatedContent = content.replace(objectPattern, (match, objectType, objectNumber, objectName) => {
-        if (!objectName.includes(`${prefix}_`)) {
+        if (!objectName.startsWith(`${prefix}_`) && !objectName.startsWith(`"${prefix}_`)) {
             // Add prefix to the object name with quotes
             if (objectName.startsWith('"'))
                 return match.replace(objectName, `"${prefix}_${objectName.slice(1, -1)}"`);

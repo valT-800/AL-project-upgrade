@@ -31,12 +31,12 @@ module.exports.getALFiles = async function (directory) {
         return;
     }
     // Combine root project folder path with directory provided
-    const srcFolderPath = path.join(workspaceFolders[0].uri.fsPath, directory);
+    const folderPath = path.join(workspaceFolders[0].uri.fsPath, directory);
     // Check if such folder exists
-    const folderExist = await directoryExists(srcFolderPath);
+    const folderExist = await directoryExists(folderPath);
     if (!folderExist) return [];
     try {
-        const alFiles = await collectFiles(srcFolderPath);
+        const alFiles = await collectALFiles(folderPath);
         return alFiles;
     } catch (error) {
         vscode.window.showErrorMessage(`Error reading src folder: ${error.message}`);
@@ -64,14 +64,14 @@ module.exports.getOpenedALDocuments = function () {
 }
 
 module.exports.collectALFiles = async function (/** @type {string} */ directory) {
-    await collectFiles(directory);
+    await collectALFiles(directory);
 }
 
 /**
  * Collect all AL files recursively
  * @param {string} directory
  */
-async function collectFiles(directory) {
+async function collectALFiles(directory) {
     let alFiles = [];
 
     // Read the directory contents
@@ -82,7 +82,7 @@ async function collectFiles(directory) {
 
         if (dirent.isDirectory()) {
             // Recursively collect AL files from subdirectories
-            const subDirFiles = await collectFiles(fullPath);
+            const subDirFiles = await collectALFiles(fullPath);
             alFiles = alFiles.concat(subDirFiles);
         } else if (dirent.isFile() && fullPath.endsWith('.al')) {
             // Add the AL file to the list
@@ -123,7 +123,7 @@ module.exports.writeFile = function (filePath, content) {
 module.exports.writeAndSaveFile = async function (filePath, content) {
     try {
         // Open and show text document
-        const document = await this.getTextDocumentFromFilePath(filePath);
+        const document = await getTextDocument(filePath);
         const editor = await vscode.window.showTextDocument(document);
         // Edit document content
         await editor.edit(editBuilder => {
@@ -166,11 +166,18 @@ module.exports.writeAndSaveDocument = async function (document, content) {
 }
 
 module.exports.getTextDocumentFromFilePath = async function (/** @type {string} */ filePath) {
+    return await getTextDocument(filePath);
+}
+
+/**
+ * @param {string} file
+ */
+async function getTextDocument(file) {
     try {
         // Convert the file path to a URI
-        const fileUri = vscode.Uri.file(filePath);
+        const fileUri = vscode.Uri.file(file);
         // Check if such document exists
-        const documentExist = await fileExists(filePath);
+        const documentExist = await fileExists(file);
         if (!documentExist) return;
         // Open the text document using the URI
         const document = await vscode.workspace.openTextDocument(fileUri);
@@ -186,7 +193,7 @@ module.exports.getTextDocumentFromFilePath = async function (/** @type {string} 
 module.exports.getFileContent = async function (/** @type {string} */ filePath) {
     try {
         // Open the text document
-        const document = await this.getTextDocumentFromFilePath(filePath);
+        const document = await getTextDocument(filePath);
         // Return the TextDocument
         return document.getText();
     } catch (error) {
@@ -197,7 +204,7 @@ module.exports.getFileContent = async function (/** @type {string} */ filePath) 
 
 module.exports.getFileErrors = async function (/** @type {string} */ filePath,/** @type {string[]} */ errors) {
     try {
-        const document = await this.getTextDocumentFromFilePath(filePath);
+        const document = await getTextDocument(filePath);
         if (document.languageId !== 'al') {
             return [];
         }

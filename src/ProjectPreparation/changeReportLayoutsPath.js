@@ -6,6 +6,9 @@ module.exports.changeReportsLayoutPath = async function () {
     if (ALfiles.length === 0)
         return 'No AL files found in the src directory.';
 
+    // Declare when any files have been changed
+    let changed = false;
+
     // Go through every src directory AL file
     for (const file of ALfiles) {
         const fileContent = await getFileContent(file);
@@ -13,8 +16,11 @@ module.exports.changeReportsLayoutPath = async function () {
         if (updatedContent !== fileContent) {
             // Write the updated content back to the file
             await writeFile(file, updatedContent);
+            // Declare file modification
+            changed = true;
         }
     }
+    if (!changed) return;
     return 'Reports Layout Path changed.';
 }
 

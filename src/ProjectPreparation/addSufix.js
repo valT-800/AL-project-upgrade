@@ -11,6 +11,9 @@ module.exports.addSufix1 = async function (/** @type {string} */ sufix) {
     if (customALfiles.length === 0 && standardALfiles.length === 0)
         return 'No AL files found in the src directory.';
 
+    // Declare when any files have been changed
+    let changed = false;
+
     // Go through every src/Custom directory file
     for (const file of customALfiles) {
         // Read and modify the file object name
@@ -21,6 +24,8 @@ module.exports.addSufix1 = async function (/** @type {string} */ sufix) {
             await writeAndSaveFile(file, updatedContent);
             // Rename the file with sufix added
             //await addSufixToFile(file, sufix);
+            // Declare file modification
+            changed = true;
         }
     }
 
@@ -37,8 +42,11 @@ module.exports.addSufix1 = async function (/** @type {string} */ sufix) {
             await writeAndSaveFile(file, updatedContent);
             // Rename the file with sufix added
             //await addSufixToFile(file, sufix);
+            // Declare file modification
+            changed = true;
         }
     }
+    if (!changed) return 'All relevant object already have a provided Sufix added.';
     return 'Sufix added to all relevant objects. \nTo resolve errors run "SPLN: Add Sufix step 2. Resolve errors"';
 }
 
@@ -127,7 +135,7 @@ function addSufixToTableExtFields(content, sufix) {
     // Add sufix to table fields
     let updatedContent = content.replace(tableFieldPattern, (match, fieldNumber, fieldName) => {
         // Do not change tables field name with already added sufix
-        if (!fieldName.endsWith(`_${sufix}`) || !fieldName.endsWith(`_${sufix}"`)) {
+        if (!fieldName.endsWith(`_${sufix}`) && !fieldName.endsWith(`_${sufix}"`)) {
             // Add sufix to the field name with quotes
             if (fieldName.startsWith('"'))
                 return match.replace(fieldName, `${fieldName.slice(0, -1)}_${sufix}"`);
@@ -259,7 +267,7 @@ function addSufixToPageReportContent(content, sufix) {
 
     // Add sufix to actions
     let updatedContent = content.replace(actionPattern, (match, actionName) => {
-        if (!actionName.endsWith(`_${sufix}`) || !actionName.endsWith(`_${sufix}"`)) {
+        if (!actionName.endsWith(`_${sufix}`) && !actionName.endsWith(`_${sufix}"`)) {
             // Add sufix to action name with quotes
             if (actionName.startsWith('"'))
                 return match.replace(actionName, `"${actionName.slice(1, -1)}_${sufix}"`);
@@ -270,7 +278,7 @@ function addSufixToPageReportContent(content, sufix) {
     });
     // Add sufix to report layouts
     updatedContent = updatedContent.replace(reportLayoutPattern, (match, layoutName) => {
-        if (!layoutName.endsWith(`_${sufix}`) || !layoutName.endsWith(`_${sufix}"`)) {
+        if (!layoutName.endsWith(`_${sufix}`) && !layoutName.endsWith(`_${sufix}"`)) {
             // Add sufix to layout name with quotes
             if (layoutName.startsWith('"'))
                 return match.replace(layoutName, `"${layoutName.slice(1, -1)}_${sufix}"`);
@@ -293,7 +301,7 @@ function addSufixToProcedures(content, sufix) {
     const procedurePattern = /\bprocedure\s+("[^"]+"|\w+)\s+\(/g;
 
     let updatedContent = content.replace(procedurePattern, (match, procedureName) => {
-        if (procedureName.endsWith(`_${sufix}`) || procedureName.endsWith(`_${sufix}"`)) {
+        if (!procedureName.endsWith(`_${sufix}`) && !procedureName.endsWith(`_${sufix}"`)) {
             // Add sufix to procedure name with quotes
             if (procedureName.startsWith('"'))
                 return match.replace(procedureName, `"${procedureName.slice(1, -1)}_${sufix}"`);
@@ -316,7 +324,7 @@ function addSufixToALObjectName(content, sufix) {
     const objectPattern = /\b(page|table|codeunit|report|enum|query|xmlport|profile|controladdin|permissionset|interface|tableextension|pageextension|reportextension|enumextension|permissionsetextension)\s+(\d+)\s+("[^"]+"|\w+)\s*(\{|extends)/g;
 
     let updatedContent = content.replace(objectPattern, (match, objectType, objectNumber, objectName) => {
-        if (!objectName.includes(`_${sufix}`)) {
+        if (!objectName.endsWith(`_${sufix}`) && !objectName.endsWith(`_${sufix}"`)) {
             // Add sufix to the object name with quotes
             if (objectName.startsWith('"'))
                 return match.replace(objectName, `"${objectName.slice(1, -1)}_${sufix}"`);
