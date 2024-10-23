@@ -9,7 +9,7 @@ const { addRecReference, addRecReferenceInActiveFiles } = require('./src/CodeRef
 const { addApplicationArea } = require('./src/ProjectPreparation/addApplicationArea');
 const { renameALExtensions } = require('./src/ProjectPreparation/renameExtensions');
 const { generalRefactoring, generalRefactoringInActiveFiles } = require('./src/CodeRefactoring/generalRefactoring');
-const { cleanupRecReference } = require('./src/CodeRefactoring/cleanupRec');
+const { cleanupRecReference, cleanupRecReferenceInActiveFiles } = require('./src/CodeRefactoring/cleanupRec');
 const { cleanupPrefix } = require('./src/ProjectPreparation/cleanupPrefix');
 const { cleanupSufix } = require('./src/ProjectPreparation/cleanupSufix');
 const { changeReportsLayoutPath } = require('./src/ProjectPreparation/changeReportLayoutsPath');
@@ -40,6 +40,9 @@ function activate(context) {
 	});
 	const addRecInActiveFilesCommand = vscode.commands.registerCommand('extension.addRecReferenceInActiveFiles', async function () {
 		vscode.window.showInformationMessage(await addRecReferenceInActiveFiles());
+	});
+	const cleanupRecInActiveFilesCommand = vscode.commands.registerCommand('extension.cleanupRecReferenceInActiveFiles', async function () {
+		vscode.window.showInformationMessage(await cleanupRecReferenceInActiveFiles());
 	});
 
 	const projectPrepCommand = vscode.commands.registerCommand('extension.projectPrep', async function () {
@@ -156,6 +159,7 @@ function activate(context) {
 	context.subscriptions.push(addRecCommand);
 	context.subscriptions.push(cleanupRecCommand);
 	context.subscriptions.push(addRecInActiveFilesCommand);
+	context.subscriptions.push(cleanupRecInActiveFilesCommand);
 	context.subscriptions.push(addSufix1Command);
 	context.subscriptions.push(addSufix2Command);
 	context.subscriptions.push(addSufix3Command);

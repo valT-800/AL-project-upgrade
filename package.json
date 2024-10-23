@@ -21,11 +21,15 @@
       },
       {
         "command": "extension.cleanupRecReference",
-        "title": "SPLN: Add Record reference. Clean up!"
+        "title": "SPLN: Add Record reference in active project. Clean up!"
       },
       {
         "command": "extension.addRecReferenceInActiveFiles",
         "title": "SPLN: Add Record reference in active files"
+      },
+      {
+        "command": "extension.cleanupRecReferenceInActiveFiles",
+        "title": "SPLN: Add Record reference in active files. Clean up!"
       },
       {
         "command": "extension.projectPrep",
@@ -37,7 +41,7 @@
       },
       {
         "command": "extension.addSufix2",
-        "title": "SPLN: Add Sufix step 2. Resolve errors."
+        "title": "SPLN: Add Sufix step 2. Resolve errors"
       },
       {
         "command": "extension.addSufix3",
@@ -49,7 +53,7 @@
       },
       {
         "command": "extension.addPrefix2",
-        "title": "SPLN: Add Prefix step 2. Resolve errors."
+        "title": "SPLN: Add Prefix step 2. Resolve errors"
       },
       {
         "command": "extension.addPrefix3",
