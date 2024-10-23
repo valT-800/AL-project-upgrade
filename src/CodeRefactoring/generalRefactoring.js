@@ -19,18 +19,21 @@ module.exports.generalRefactoring = async function () {
     for (const file of ALfiles) {
         // Get AL file document
         const document = await getTextDocumentFromFilePath(file);
-        const fileContent = document.getText();
-        let updatedContent = await refactorCrossReference(document, fileContent);
-        updatedContent = refactorGetLanguageID(updatedContent);
-        updatedContent = refactorObjectTableReference(updatedContent);
-        if (targetMatches !== null) {
-            updatedContent = resolveScopeProperty(targetMatches[0], updatedContent);
-        }
-        if (updatedContent !== fileContent) {
-            // Write the updated content back to the file
-            await writeAndSaveFile(file, updatedContent);
-            // Declare file modification
-            changed = true;
+        if (document) {
+            const fileContent = document.getText();
+            let updatedContent = await refactorCrossReference(document, fileContent);
+            updatedContent = refactorGetLanguageID(updatedContent);
+            if (targetMatches !== null) {
+                if (targetMatches[0] == '"Cloud"')
+                    updatedContent = refactorObjectTableReference(updatedContent);
+                updatedContent = resolveScopeProperty(targetMatches[0], updatedContent);
+            }
+            if (updatedContent !== fileContent) {
+                // Write the updated content back to the file
+                await writeAndSaveFile(file, updatedContent);
+                // Declare file modification
+                changed = true;
+            }
         }
     }
     // Recommends to run command again when some content was changed and could have more errors
@@ -60,8 +63,9 @@ module.exports.generalRefactoringInActiveFiles = async function () {
         const fileContent = document.getText();
         let updatedContent = await refactorCrossReference(document, fileContent);
         updatedContent = refactorGetLanguageID(updatedContent);
-        updatedContent = refactorObjectTableReference(updatedContent);
         if (targetMatches !== null) {
+            if (targetMatches[0] == '"Cloud"')
+                updatedContent = refactorObjectTableReference(updatedContent);
             updatedContent = resolveScopeProperty(targetMatches[0], updatedContent);
         }
         if (updatedContent !== fileContent) {
