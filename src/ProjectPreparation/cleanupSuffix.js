@@ -1,6 +1,6 @@
 const { getALFiles, writeAndSaveFile, getDocumentErrors, getFileContent, getTextDocumentFromFilePath } = require('../ProjectWorkspaceManagement/workspaceMgt.js');
 
-module.exports.cleanupSufix = async function (/** @type {string} */ sufix) {
+module.exports.cleanupSuffix = async function (/** @type {string} */ suffix) {
     const ALfiles = await getALFiles('src');
     if (!ALfiles) return;
     if (ALfiles.length === 0)
@@ -11,7 +11,7 @@ module.exports.cleanupSufix = async function (/** @type {string} */ sufix) {
     // Go through every file
     for (const file of ALfiles) {
         const fileContent = await getFileContent(file);
-        let updatedContent = await removeSufixCausingAnError(file, fileContent, sufix);
+        let updatedContent = await removeSuffixCausingAnError(file, fileContent, suffix);
         if (updatedContent !== fileContent) {
             // Write the updated content back to the file
             await writeAndSaveFile(file, updatedContent);
@@ -21,16 +21,16 @@ module.exports.cleanupSufix = async function (/** @type {string} */ sufix) {
     }
     if (changed)
         return 'Please run this command again after few seconds!';
-    return 'Sufix cleanup completed.';
+    return 'Suffix cleanup completed.';
 }
 
 // Helper function to add suffix to object names, fields, actions, and procedures
 /**
  * @param {string} content
  * @param {string} file
- * @param {string} sufix
+ * @param {string} suffix
  */
-async function removeSufixCausingAnError(file, content, sufix) {
+async function removeSuffixCausingAnError(file, content, suffix) {
     try {
         let errors = [];
         errors.push('does not contain a definition for');
@@ -52,9 +52,9 @@ async function removeSufixCausingAnError(file, content, sufix) {
             // Extract the exact substring that caused the error based on the range
             const errorSnippet = errorLine.substring(startPosition.character, endPosition.character);
             let updatedLine = errorLine;
-            // Remove sufix when from error causer
-            if (errorSnippet.includes(`_${sufix}`)) {
-                let updatedSnippet = errorSnippet.replaceAll(`_${sufix}`, '');
+            // Remove suffix when from error causer
+            if (errorSnippet.includes(`_${suffix}`)) {
+                let updatedSnippet = errorSnippet.replaceAll(`_${suffix}`, '');
                 updatedLine = errorLine.replace(errorSnippet, updatedSnippet);
             }
             updatedContent = updatedContent.replace(errorLine, updatedLine);

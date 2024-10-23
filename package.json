@@ -36,16 +36,16 @@
         "title": "SPLN: Prepare project for upgrade"
       },
       {
-        "command": "extension.addSufix1",
-        "title": "SPLN: Add Sufix step 1"
+        "command": "extension.addSuffix1",
+        "title": "SPLN: Add Suffix step 1"
       },
       {
-        "command": "extension.addSufix2",
-        "title": "SPLN: Add Sufix step 2. Resolve errors"
+        "command": "extension.addSuffix2",
+        "title": "SPLN: Add Suffix step 2. Resolve errors"
       },
       {
-        "command": "extension.addSufix3",
-        "title": "SPLN: Add Sufix step 3. Clean up!"
+        "command": "extension.addSuffix3",
+        "title": "SPLN: Add Suffix step 3. Clean up!"
       },
       {
         "command": "extension.addPrefix1",
