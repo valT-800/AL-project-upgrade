@@ -84,5 +84,9 @@
   },
   "dependencies": {
     "jszip": "^3.10.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/valT-800/AL-project-upgrade"
   }
 }
