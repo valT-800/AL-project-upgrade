@@ -1,4 +1,4 @@
-const { getALFiles, writeAndSaveFile, getDocumentErrors, getTextDocumentFromFilePath, getFileContent, getOpenedALDocuments, writeAndSaveDocument } = require('../ProjectWorkspaceManagement/workspaceMgt');
+const { getALFiles, writeAndSaveFile, getDocumentErrors, getTextDocumentFromFilePath, getFileContent, getOpenedALDocuments, writeAndSaveDocument, getFullFilePath } = require('../ProjectWorkspaceManagement/workspaceMgt');
 
 module.exports.addRecReference = async function () {
 
@@ -10,6 +10,14 @@ module.exports.addRecReference = async function () {
     if (ALfiles.length === 0)
         return 'No AL page or page extension objects found in the src directory.';
 
+    // Search "NoImplicitWith" feature in app.json file that means missing Rec reference appears as error
+    const recError = await searchNoImplicitWithFeature();
+    let errors = [];
+    if (recError)
+        errors = ['does not exist in the current context'];
+    else
+        errors = ["Use of implicit 'with' will be removed in the future. Qualify with 'Rec'. This warning will become an error in a future release."];
+
     // Declare when any files have been changed
     let changed = false;
 
@@ -19,18 +27,23 @@ module.exports.addRecReference = async function () {
         const fileContent = await getFileContent(file);
         // Get AL file document
         const document = await getTextDocumentFromFilePath(file);
-        // Add Rec reference
-        const updatedContent = await addRecReferenceInCode(document, fileContent);
-        if (updatedContent !== fileContent) {
-            // Write the updated content back to the file
-            await writeAndSaveFile(file, updatedContent);
-            // Declare file modification
-            changed = true;
+        if (document) {
+            // Add Rec reference
+            const updatedContent = await addRecReferenceInCode(document, fileContent, errors);
+            if (updatedContent !== fileContent) {
+                // Write the updated content back to the file
+                await writeAndSaveFile(file, updatedContent);
+                // Declare file modification
+                changed = true;
+            }
         }
     }
     if (changed)
         return 'Please run this command again after few seconds!';
-    return ('Rec reference added');
+    else {
+        if (recError) return ('Rec reference added. Please run "SPLN: Add Record Reference in active project. Clean up!" command.');
+        return ('Rec reference added.');
+    }
 }
 
 module.exports.addRecReferenceInActiveFiles = async function () {
@@ -40,6 +53,14 @@ module.exports.addRecReferenceInActiveFiles = async function () {
     if (ALdocs.length === 0)
         return 'No AL files are opened in the workspace.';
 
+    // Search "NoImplicitWith" feature in app.json file that means missing Rec reference appears as error
+    const recError = await searchNoImplicitWithFeature();
+    let errors = [];
+    if (recError)
+        errors = ['does not exist in the current context'];
+    else
+        errors = ["Use of implicit 'with' will be removed in the future. Qualify with 'Rec'. This warning will become an error in a future release."];
+
     // Declare when any files have been changed
     let changed = false;
 
@@ -47,39 +68,55 @@ module.exports.addRecReferenceInActiveFiles = async function () {
     for (const document of ALdocs) {
         // Read file content into text
         const fileContent = document.getText();
-        // Add Rec reference
-        const updatedContent = await addRecReferenceInCode(document, fileContent);
-        if (updatedContent !== fileContent) {
-            // Write the updated content back to the file
-            await writeAndSaveDocument(document, updatedContent);
-            // Declare file modification
-            changed = true;
+        // Modify only page or pageextension type objects
+        if (fileContent.startsWith('page ') || fileContent.startsWith('pageextension ')) {
+            // Add Rec reference
+            const updatedContent = await addRecReferenceInCode(document, fileContent, errors);
+            if (updatedContent !== fileContent) {
+                // Write the updated content back to the file
+                await writeAndSaveDocument(document, updatedContent);
+                // Declare file modification
+                changed = true;
+            }
         }
     }
     if (changed)
         return 'Please run this command again after few seconds!';
-    return ('Rec reference added');
+    else {
+        if (recError) return ('Rec reference added. Please run "SPLN: Add Record Reference in active files. Clean up!" command.');
+        return ('Rec reference added.');
+    }
+}
+
+async function searchNoImplicitWithFeature() {
+    let found = false;
+    // Get project "NoImplicitWith" feature from app.json file
+    const appFilePath = await getFullFilePath('app.json');
+    if (!appFilePath) return;
+    const appFileContent = await getFileContent(appFilePath);
+    if (!appFileContent) return 'No manifest file exists. Please add app.json file to continue!';
+    const features = appFileContent.match(/"features":\s*\[[^\]]+\]/g);
+
+    if (features !== null) {
+        if (features[0].includes('"NoImplicitWith"'))
+            found = true;
+    }
+    return found;
 }
 
 /**
  * Add Rec reference to fields and procedures causing a warning or error
  * @param {import("vscode").TextDocument} document
  * @param {string} content
+ * @param {string[]} errors
  */
-async function addRecReferenceInCode(document, content) {
+async function addRecReferenceInCode(document, content, errors) {
     try {
-        const warnings = ["Use of implicit 'with' will be removed in the future. Qualify with 'Rec'. This warning will become an error in a future release."];
-
-        // Get all document warnings of missing Rec reference
-        let diagnostics = await getDocumentErrors(document, warnings);
-        // When no warnings found get errors associated with missing Rec reference
-        if (diagnostics.length == 0) {
-            const errors = ['does not exist in the current context'];
-            diagnostics = await getDocumentErrors(document, errors);
-            // Return original content when no warnings or errors found
-            if (diagnostics.length == 0)
-                return content;
-        }
+        // Get all document errors/warnings associated with missing Rec reference
+        let diagnostics = await getDocumentErrors(document, errors);
+        // Return original content when no warnings or errors found
+        if (diagnostics.length == 0)
+            return content;
         let updatedContent = content;
         // Go through every error
         diagnostics.forEach(diagnostic => {
