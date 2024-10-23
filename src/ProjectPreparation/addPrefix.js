@@ -32,8 +32,12 @@ module.exports.addPrefix1 = async function (/** @type {string} */ prefix) {
         const fileContent = await getFileContent(file);
         let updatedContent = addPrefixToALObjectName(fileContent, prefix);
         updatedContent = addPrefixToTableFields(updatedContent, prefix);
-        updatedContent = addPrefixToPageReportContent(updatedContent, prefix);
-        updatedContent = addPrefixToProcedures(updatedContent, prefix);
+        if (fileContent.startsWith('pageextension '))
+            updatedContent = addPrefixToActions(updatedContent, prefix);
+        if (fileContent.startsWith('report '))
+            updatedContent = addPrefixToLayouts(updatedContent, prefix);
+        if (fileContent.startsWith('tableextension ') || fileContent.startsWith('pageextension '))
+            updatedContent = addPrefixToProcedures(updatedContent, prefix);
         if (updatedContent !== fileContent) {
             // Write the updated content back to the file
             await writeAndSaveFile(file, updatedContent);
@@ -132,7 +136,7 @@ async function addPrefixToFile(filePath, prefix) {
  */
 function addPrefixToTableFields(content, prefix) {
 
-    // Regex patterns for AL extension fields, actions, layouts and procedures
+    // Regex patterns for table fields
     const tableFieldPattern = /\bfield\s*\((\d+);\s*("[^"]+"|\w+)\s*;/g;
 
     // Add prefix to table fields
@@ -300,14 +304,13 @@ async function addPrefixToReferences(file, content, prefix, errors) {
 
 
 /**
- * Add prefix to report layouts, page and requestpage actions
+ * Add prefix to actions
  * @param {string} content
  * @param {string} prefix
  */
-function addPrefixToPageReportContent(content, prefix) {
+function addPrefixToActions(content, prefix) {
 
     const actionPattern = /\baction\s*\(\s*("[^"]+"|\w+)\s*\)/g;
-    const reportLayoutPattern = /\blayout\s*\(\s*("[^"]+"|\w+)\s*\)/g;
 
     // Add prefix to actions
     let updatedContent = content.replace(actionPattern, (match, actionName) => {
@@ -320,8 +323,21 @@ function addPrefixToPageReportContent(content, prefix) {
         }
         return match;
     });
+
+    return updatedContent;
+}
+
+/**
+ * Add prefix to report layouts
+ * @param {string} content
+ * @param {string} prefix
+ */
+function addPrefixToLayouts(content, prefix) {
+
+    const reportLayoutPattern = /\blayout\s*\(\s*("[^"]+"|\w+)\s*\)/g;
+
     // Add prefix to report layouts
-    updatedContent = updatedContent.replace(reportLayoutPattern, (match, layoutName) => {
+    let updatedContent = content.replace(reportLayoutPattern, (match, layoutName) => {
         if (!layoutName.startsWith(`${prefix}_`) && !layoutName.startsWith(`"${prefix}_`)) {
             // Add prefix to layout name with quotes
             if (layoutName.startsWith('"'))
@@ -333,7 +349,6 @@ function addPrefixToPageReportContent(content, prefix) {
     });
     return updatedContent;
 }
-
 
 /**
  * Add prefix to procedures

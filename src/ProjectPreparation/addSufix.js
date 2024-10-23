@@ -34,9 +34,13 @@ module.exports.addSufix1 = async function (/** @type {string} */ sufix) {
         // Read and modify the file content
         const fileContent = await getFileContent(file);
         let updatedContent = addSufixToALObjectName(fileContent, sufix);
-        updatedContent = addSufixToTableExtFields(updatedContent, sufix);
-        updatedContent = addSufixToPageReportContent(updatedContent, sufix);
-        updatedContent = addSufixToProcedures(updatedContent, sufix);
+        updatedContent = addSufixToTableFields(updatedContent, sufix);
+        if (fileContent.startsWith('pageextension '))
+            updatedContent = addSufixToActions(updatedContent, sufix);
+        if (fileContent.startsWith('report '))
+            updatedContent = addSufixToReportLayouts(updatedContent, sufix);
+        if (fileContent.startsWith('tableextension ') || fileContent.startsWith('pageextension '))
+            updatedContent = addSufixToProcedures(updatedContent, sufix);
         if (updatedContent !== fileContent) {
             // Write the updated content back to the file
             await writeAndSaveFile(file, updatedContent);
@@ -127,9 +131,9 @@ async function addSufixToFile(filePath, sufix) {
  * @param {string} content
  * @param {string} sufix
  */
-function addSufixToTableExtFields(content, sufix) {
+function addSufixToTableFields(content, sufix) {
 
-    // Regex patterns for AL extension fields, actions, layouts and procedures
+    // Regex patterns for table fields
     const tableFieldPattern = /\bfield\s*\((\d+);\s*("[^"]+"|\w+)\s*;/g;
 
     // Add sufix to table fields
@@ -213,6 +217,21 @@ async function addSufixToReferences(file, content, sufix, errors) {
                 });
                 updatedLine = errorLine.replace(errorSnippet, updatedSnippet);
             }
+            // Search for object reference variables and add sufix
+            if (errorLine == updatedLine) {
+                const variablePattern = /\b(Record|Query|XMLport|Report|Codeunit|Page)\s+("[^"]*"|\w+)\s*/gi;
+                let updatedSnippet = errorSnippet.replace(variablePattern, (match, variableType, variableSource) => {
+                    if (errorSnippet == match && !variableSource.includes(`_${sufix}`)) {
+                        // Add prefix to variable source name with quotes
+                        if (variableSource.endsWith('"'))
+                            return match.replace(variableSource, `"${variableSource.slice(1, -1)}_${sufix}"`);
+                        // Add prefix to variable source name without quotes
+                        else return match.replace(variableSource, `${variableSource}_${sufix}`);
+                    }
+                    return match;
+                });
+                updatedLine = errorLine.replace(errorSnippet, updatedSnippet);
+            }
             // Search for object, field and procedure references, and add sufix
             if (errorLine == updatedLine && !errorSnippet.startsWith('DotNet') && !errorSnippet.endsWith(')') && errorSnippet !== 'Rec') {
                 // Regex for fields going after some common characters
@@ -256,14 +275,13 @@ async function addSufixToReferences(file, content, sufix, errors) {
 }
 
 /**
- * Add sufix to report layouts, page and requestpage actions
+ * Add sufix to actions
  * @param {string} content
  * @param {string} sufix
  */
-function addSufixToPageReportContent(content, sufix) {
+function addSufixToActions(content, sufix) {
 
     const actionPattern = /\baction\s*\(\s*("[^"]+"|\w+)\s*\)/g;
-    const reportLayoutPattern = /\blayout\s*\(\s*("[^"]+"|\w+)\s*\)/g;
 
     // Add sufix to actions
     let updatedContent = content.replace(actionPattern, (match, actionName) => {
@@ -276,8 +294,19 @@ function addSufixToPageReportContent(content, sufix) {
         }
         return match;
     });
+    return updatedContent;
+}
+/**
+ * Add sufix to report layouts
+ * @param {string} content
+ * @param {string} sufix
+ */
+function addSufixToReportLayouts(content, sufix) {
+
+    const reportLayoutPattern = /\blayout\s*\(\s*("[^"]+"|\w+)\s*\)/g;
+
     // Add sufix to report layouts
-    updatedContent = updatedContent.replace(reportLayoutPattern, (match, layoutName) => {
+    let updatedContent = content.replace(reportLayoutPattern, (match, layoutName) => {
         if (!layoutName.endsWith(`_${sufix}`) && !layoutName.endsWith(`_${sufix}"`)) {
             // Add sufix to layout name with quotes
             if (layoutName.startsWith('"'))

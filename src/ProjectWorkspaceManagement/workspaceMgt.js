@@ -217,8 +217,8 @@ module.exports.getFileContent = async function (/** @type {string} */ filePath) 
         // Return the TextDocument
         return document.getText();
     } catch (error) {
-        vscode.window.showErrorMessage(`Error opening document: ${error}`);
-        return;
+        console.error(`Error getting file content: ${error}`);
+        return '';
     }
 }
 
