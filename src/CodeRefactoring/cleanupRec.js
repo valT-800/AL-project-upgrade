@@ -96,7 +96,10 @@ async function removeRecReferenceCausingAnError(document, content) {
             let updatedLine = errorLine;
             if (errorSnippet == 'Rec') {
                 updatedLine = `${errorLine.slice(0, startPosition.character)}${errorLine.slice(endPosition.character + 1)}`;
-            } else if (errorLine.slice(startPosition.character - 4, startPosition.character) == 'Rec.') {
+            } else if (errorSnippet.startsWith('Rec.')) {
+                updatedLine = `${errorLine.slice(0, startPosition.character)}${errorSnippet.slice(4)}${errorLine.slice(endPosition.character)}`;
+            }
+            else if (errorLine.slice(startPosition.character - 4, startPosition.character) == 'Rec.') {
                 updatedLine = `${errorLine.slice(0, startPosition.character - 4)}${errorSnippet}${errorLine.slice(endPosition.character)}`;
             }
             // Replace the content of the first error line with the modified text
