@@ -56,15 +56,14 @@ module.exports.addSuffix1 = async function (/** @type {string} */ suffix) {
 
 module.exports.addSuffix2 = async function (/** @type {string} */ suffix) {
 
-    let customALfiles = await getALFiles('src/Custom');
-    let standardALfiles = await getALFiles('src/Standard');
+    const ALfiles = await getALFiles('src');
 
-    if (standardALfiles.length === 0 && customALfiles.length === 0)
+    if (ALfiles.length === 0)
         return 'No AL files found in the src directory.';
 
     // Declare when any files have been changed
     let changed = false;
-    for (const file of customALfiles) {
+    for (const file of ALfiles) {
         // Read and modify the file object name
         const fileContent = await getFileContent(file);
         let errors = ['is missing'];
@@ -73,6 +72,8 @@ module.exports.addSuffix2 = async function (/** @type {string} */ suffix) {
         if (updatedContent == fileContent) {
             errors = ['does not contain a definition for'];
             errors.push('does not exist');
+            errors.push('The source of a Column or Filter must be a field defined on the table referenced by its parent DataItem');
+            errors.push('must be a member');
             updatedContent = await addSuffixToReferences(file, updatedContent, suffix, errors);
         }
         if (updatedContent !== fileContent) {
@@ -81,25 +82,6 @@ module.exports.addSuffix2 = async function (/** @type {string} */ suffix) {
             // Rename the file with suffix added
             //await addSuffixToFile(file, suffix);
             // Declare file modification
-            changed = true;
-        }
-    }
-    for (const file of standardALfiles) {
-        // Read and modify the file content
-        const fileContent = await getFileContent(file);
-        let errors = ['is missing'];
-        errors.push('is not found in the target');
-        let updatedContent = await addSuffixToReferences(file, fileContent, suffix, errors);
-        if (updatedContent == fileContent) {
-            errors = ['does not contain a definition for'];
-            errors.push('does not exist');
-            updatedContent = await addSuffixToReferences(file, updatedContent, suffix, errors);
-        }
-        if (updatedContent !== fileContent) {
-            // Write the updated content back to the file
-            await writeAndSaveFile(file, updatedContent);
-            // Rename the file with suffix added
-            //await addSuffixToFile(file, suffix);
             changed = true;
         }
     }
@@ -217,25 +199,56 @@ async function addSuffixToReferences(file, content, suffix, errors) {
                 });
                 updatedLine = errorLine.replace(errorSnippet, updatedSnippet);
             }
+            if (errorLine == updatedLine) {
+                const calcfieldPattern = /("[^"]*"|\w+)\s*=\s*\b(filter|field)\s*\(\s*("[^"]*"|\w+)\s*\)/gi;
+                let updatedSnippet = errorSnippet.replace(calcfieldPattern, (match, match1, method, field) => {
+                    if (!match1.includes(`_${suffix}`)) {
+                        // Add suffix to field name with quotes
+                        if (match1.startsWith('"')) return match.replace(match1, `"${match1.slice(1, -1)}_${suffix}"`);
+                        // Add suffix to field name without quotes
+                        else return match.replace(match1, `${match1}_${suffix}`);
+                    }
+                    return match;
+                });
+                updatedLine = errorLine.replace(errorSnippet, updatedSnippet);
+            }
+
             // Search for object reference variables and add suffix
             if (errorLine == updatedLine) {
                 const variablePattern = /\b(Record|Query|XMLport|Report|Codeunit|Page)\s+("[^"]*"|\w+)\s*/gi;
                 let updatedSnippet = errorSnippet.replace(variablePattern, (match, variableType, variableSource) => {
                     if (errorSnippet == match && !variableSource.includes(`_${suffix}`)) {
-                        // Add prefix to variable source name with quotes
+                        // Add suffix to variable source name with quotes
                         if (variableSource.endsWith('"'))
                             return match.replace(variableSource, `"${variableSource.slice(1, -1)}_${suffix}"`);
-                        // Add prefix to variable source name without quotes
+                        // Add suffix to variable source name without quotes
                         else return match.replace(variableSource, `${variableSource}_${suffix}`);
                     }
                     return match;
                 });
                 updatedLine = errorLine.replace(errorSnippet, updatedSnippet);
             }
+            // Search for object fields and procedures references and add suffix
+            if (errorLine == updatedLine) {
+                const recFieldPattern = /("[^"]*"|(?<!")\w+)\.("[^"]*"|(?<!")\w+)/g;
+                let updatedSnippet = errorSnippet.replace(recFieldPattern, (match, record, field) => {
+                    if (errorSnippet == match && !field.includes(`_${suffix}`)) {
+                        // Do not add suffix when pattern found inside a field or object reference
+                        if (errorSnippet.startsWith('"') && !record.endsWith('"')) return match;
+                        // Add suffix to field or object name with quotes
+                        if (field.startsWith('"'))
+                            return match.replace(field, `${field.slice(0, -1)}_${suffix}"`);
+                        // Add suffix to field or procedure name without quotes
+                        else return match.replace(field, `${field}_${suffix}`);
+                    }
+                    return match;
+                });
+                updatedLine = errorLine.replace(errorSnippet, updatedSnippet);
+            }
             // Search for object, field and procedure references, and add suffix
-            if (errorLine == updatedLine && !errorSnippet.startsWith('DotNet') && !errorSnippet.endsWith(')') && errorSnippet !== 'Rec') {
+            if (errorLine == updatedLine && !errorSnippet.startsWith('DotNet') && errorSnippet !== 'Rec') {
                 // Regex for fields going after some common characters
-                let pattern = /(=\s*|if\s*)("[^"]+"|\w+)/gi;
+                let pattern = /(=\s*|\(|\+\s*|-\s*|<\s*|>\s*|\*\s*|\s*\/|\.|\,\s*|;\s*|\bif\s*|\bor\s*|\bcase\s*)("[^"]+"|\w+)/gi;
                 errorLine.replace(pattern, (match, m1, field) => {
                     if (errorSnippet == field && !field.includes(`_${suffix}`)) {
                         // Add suffix to field or object name with quotes
@@ -247,24 +260,25 @@ async function addSuffixToReferences(file, content, suffix, errors) {
                     }
                     return match;
                 });
-                // Regex for fields and tables followed by some common characters
-                pattern = /("[^"]+"|\w+)(\s*;|\s*,|\s*\(|\s*\)|\s*:|\s*=|\s*<|\s*>|\s*:=|\s*\+|\s*\-|\s*\/|\s+then)/gi;
-                errorLine.replace(pattern, (match, object) => {
-                    if (errorSnippet == object && !object.includes(`_${suffix}`)) {
-                        // Add suffix to field or object name with quotes
-                        if (errorSnippet.endsWith('"'))
-                            updatedLine = `${errorLine.slice(0, startPosition.character)}${errorSnippet.slice(0, -1)}_${suffix}"${errorLine.slice(endPosition.character)}`;
-                        // Add suffix to field or object name without quotes
-                        else
-                            updatedLine = `${errorLine.slice(0, startPosition.character)}${errorSnippet}_${suffix}${errorLine.slice(endPosition.character)}`;
-                    }
-                    return match;
-                });
+                if (errorLine == updatedLine) {
+                    // Regex for fields and tables followed by some common characters
+                    pattern = /("[^"]+"|\w+)(\s*;|\s*,|\s*\(|\s*\)|\s*:|\s*=|\s*<|\s*>|\s*\+|\s*\-|\s*\/|\s*\*|\s*\/|\s+then|\.|\s*where|\s*in|\s*and)/gi;
+                    errorLine.replace(pattern, (match, object) => {
+                        if (errorSnippet == object && !object.includes(`_${suffix}`)) {
+                            // Add suffix to field or object name with quotes
+                            if (errorSnippet.endsWith('"'))
+                                updatedLine = `${errorLine.slice(0, startPosition.character)}${errorSnippet.slice(0, -1)}_${suffix}"${errorLine.slice(endPosition.character)}`;
+                            // Add suffix to field or object name without quotes
+                            else
+                                updatedLine = `${errorLine.slice(0, startPosition.character)}${errorSnippet}_${suffix}${errorLine.slice(endPosition.character)}`;
+                        }
+                        return match;
+                    });
+                }
             }
-            // Remove suffix dublicates
-            updatedLine = updatedLine.replace(`_${suffix}_${suffix}`, `_${suffix}`);
-
             updatedContent = updatedContent.replace(errorLine, updatedLine);
+            // Remove suffix dublicates
+            updatedContent = updatedContent.replace(`_${suffix}_${suffix}`, `_${suffix}`);
         });
         return updatedContent;
     }

@@ -54,17 +54,16 @@ module.exports.addPrefix1 = async function (/** @type {string} */ prefix) {
 
 module.exports.addPrefix2 = async function (/** @type {string} */ prefix) {
 
-    let customALfiles = await getALFiles('src/Custom');
-    let standardALfiles = await getALFiles('src/Standard');
+    const ALfiles = await getALFiles('src');
 
-    if (standardALfiles.length === 0 && customALfiles.length === 0)
+    if (ALfiles.length === 0)
         return 'No AL files found in the src directory.';
 
     // Declare when any files have been changed
     let changed = false;
 
-    // Go through every src/Custom directory file
-    for (const file of customALfiles) {
+    // Go through every src directory file
+    for (const file of ALfiles) {
         const fileContent = await getFileContent(file);
         // Add prefix first to missing object references
         let errors = ['is missing'];
@@ -74,27 +73,8 @@ module.exports.addPrefix2 = async function (/** @type {string} */ prefix) {
         if (updatedContent == fileContent) {
             errors = ['does not contain a definition for'];
             errors.push('does not exist');
-            updatedContent = await addPrefixToReferences(file, updatedContent, prefix, errors);
-        }
-        if (updatedContent !== fileContent) {
-            // Write the updated content back to the file
-            await writeAndSaveFile(file, updatedContent);
-            // Declare file modification
-            changed = true;
-            // Rename the file with prefix added
-            //await addPrefixToFile(file, prefix);
-        }
-    }
-    // Go through every src/Standard directory file
-    for (const file of standardALfiles) {
-        // Read and modify the file content
-        const fileContent = await getFileContent(file);
-        let errors = ['is missing'];
-        errors.push('is not found in the target');
-        let updatedContent = await addPrefixToReferences(file, fileContent, prefix, errors);
-        if (updatedContent == fileContent) {
-            errors = ['does not contain a definition for'];
-            errors.push('does not exist');
+            errors.push('The source of a Column or Filter must be a field defined on the table referenced by its parent DataItem');
+            errors.push('must be a member');
             updatedContent = await addPrefixToReferences(file, updatedContent, prefix, errors);
         }
         if (updatedContent !== fileContent) {
@@ -227,6 +207,19 @@ async function addPrefixToReferences(file, content, prefix, errors) {
                 });
                 updatedLine = errorLine.replace(errorSnippet, updatedSnippet);
             }
+            if (errorLine == updatedLine) {
+                const calcfieldPattern = /("[^"]*"|\w+)\s*=\s*\b(filter|field)\s*\(\s*("[^"]*"|\w+)\s*\)/gi;
+                let updatedSnippet = errorSnippet.replace(calcfieldPattern, (match, match1, method, field) => {
+                    if (!match1.includes(`${prefix}_`)) {
+                        // Add suffix to field name with quotes
+                        if (match1.startsWith('"')) return match.replace(match1, `"${prefix}_${match1.slice(1, -1)}"`);
+                        // Add suffix to field name without quotes
+                        else return match.replace(match1, `${prefix}${match1}`);
+                    }
+                    return match;
+                });
+                updatedLine = errorLine.replace(errorSnippet, updatedSnippet);
+            }
             // Search for object reference variables and add prefix
             if (errorLine == updatedLine) {
                 const variablePattern = /\b(Record|Query|XMLport|Report|Codeunit|Page)\s+("[^"]*"|\w+)\s*/gi;
@@ -260,9 +253,9 @@ async function addPrefixToReferences(file, content, prefix, errors) {
                 updatedLine = errorLine.replace(errorSnippet, updatedSnippet);
             }
             // Search for object, field and procedure references, and add prefix
-            if (errorLine == updatedLine && !errorSnippet.startsWith('DotNet')) {
+            if (errorLine == updatedLine && !errorSnippet.startsWith('DotNet') && errorSnippet !== 'Rec') {
                 // Regex for field references going after some common characters
-                let pattern = /(=\s*|if\s*)("[^"]+"|\w+)/gi;
+                let pattern = /(=\s*|\(|\+\s*|-\s*|<\s*|>\s*|\*\s*|\s*\/|\.|\,\s*|;\s*|\bif\s*|\bor\s*|\bcase\s*)("[^"]+"|\w+)/gi;
                 errorLine.replace(pattern, (match, m1, field) => {
                     if (errorSnippet == field && !field.includes(`${prefix}_`)) {
                         // Add prefix to field or object name with quotes
@@ -274,24 +267,25 @@ async function addPrefixToReferences(file, content, prefix, errors) {
                     }
                     return match;
                 });
-                // Regex for field and object references followed by some common characters
-                pattern = /("[^"]+"|\w+)(\s*;|\s*,|\s*\(|\s*\)|\s*:|\s*=|\s*<|\s*>|\s*:=|\s*\+|\s*\-|\s*\/|\s+then)/gi;
-                errorLine.replace(pattern, (match, object) => {
-                    if (errorSnippet == object && !object.includes(`${prefix}_`)) {
-                        // Add prefix to field or object name with quotes
-                        if (errorSnippet.startsWith('"'))
-                            updatedLine = `${errorLine.slice(0, startPosition.character)}"${prefix}_${errorSnippet.slice(1)}${errorLine.slice(endPosition.character)}`;
-                        // Add prefix to field or object name without quotes
-                        else
-                            updatedLine = `${errorLine.slice(0, startPosition.character)}${prefix}_${errorSnippet}${errorLine.slice(endPosition.character)}`;
-                    }
-                    return match;
-                });
+                if (errorLine == updatedLine) {
+                    // Regex for field and object references followed by some common characters
+                    pattern = /("[^"]+"|\w+)(\s*;|\s*,|\s*\(|\s*\)|\s*:|\s*=|\s*<|\s*>|\s*\+|\s*\-|\s*\/|\s*\*|\s*\/|\s+then|\.|\s*where|\s*in|\s*and)/gi;
+                    errorLine.replace(pattern, (match, object) => {
+                        if (errorSnippet == object && !object.includes(`${prefix}_`)) {
+                            // Add prefix to field or object name with quotes
+                            if (errorSnippet.startsWith('"'))
+                                updatedLine = `${errorLine.slice(0, startPosition.character)}"${prefix}_${errorSnippet.slice(1)}${errorLine.slice(endPosition.character)}`;
+                            // Add prefix to field or object name without quotes
+                            else
+                                updatedLine = `${errorLine.slice(0, startPosition.character)}${prefix}_${errorSnippet}${errorLine.slice(endPosition.character)}`;
+                        }
+                        return match;
+                    });
+                }
             }
-            // Remove prefix dublicates
-            updatedLine = updatedLine.replace(`${prefix}_${prefix}_`, `${prefix}_`);
-
             updatedContent = updatedContent.replace(errorLine, updatedLine);
+            // Remove prefix dublicates
+            updatedContent = updatedContent.replace(`${prefix}_${prefix}_`, `${prefix}_`);
 
         });
         return updatedContent;

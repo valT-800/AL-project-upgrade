@@ -163,6 +163,7 @@ Command will add affix in code where this errors appear: '..is missing..'; '..is
 
 ⚠️ **Warning 1:** In every new VS Code session run step 1 first or you will receive an error. Step 1 not also adds affix, but remembers affix value for other commands. 
 ⚠️ **Warning 2:** Sometimes this command could mistakenly add affix to the code where errors appear because of the different reason than missing an affix. That's why after this command you need to run `SPLN: Add Suffix part 3. Clean up!` and `SPLN: Add Prefix part 3. Clean up!`.
+⚠️ **Known issues:** Command do not cover: erors with non latin letters; errors in lines that dublicates in the file code; weird code syntax; files placed in the wrong spot; files having not a standard name.
 
 _Error message:_
 

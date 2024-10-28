@@ -37,6 +37,8 @@ async function removePrefixCausingAnError(file, content, prefix) {
         errors.push('does not exist');
         errors.push('is missing');
         errors.push('is not recognized as a valid type');
+        errors.push('The source of a Column or Filter must be a field defined on the table referenced by its parent DataItem');
+        errors.push('must be a member');
         const document = await getTextDocumentFromFilePath(file);
         const diagnostics = await getDocumentErrors(document, errors);
         // End function when no errors found
