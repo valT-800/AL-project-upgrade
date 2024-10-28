@@ -20,10 +20,6 @@ To see commands press _Ctrl + Shift + P_ and enter _SPLN:_
 ### Commands
 
 * `SPLN: Prepare project for upgrade` - does several things: structurizes converted to AL files placed in the root of the project; adds "ApplicationArea = All" property to all relevant code parts; changes report layout paths; renames object extensions with objects name.
-* `SPLN: Add Record reference in active project` - adds Rec to all relevant fields and procedures references in the project files. 
-* `SPLN: Add Record reference in active files` - adds Rec to all relevant fields and procedures references in only opened files.
-* `SPLN: Add Record reference in active project. Clean up!` - removes Rec where it was added, but the error was not resolved in the project files.
-* `SPLN: Add Record reference in active files. Clean up!` - removes Rec where it was added, but the error was not resolved in only opened files.
 * `SPLN: General refactoring in active project` - resolves some common breaking change errors/warnings in the project files.
 * `SPLN: General refactoring in active files` - resolves some common breaking change errors/warnings in only opened files.
 * `SPLN: Add Suffix part 1` - adds Suffix to all relevant code parts and remembers Suffix value for father use.
@@ -49,54 +45,6 @@ To rename object extensions the system will ask you if you added affix to object
 
 ![alt text](images/image-10.png)
 ![alt text](images/image-11.png)
-
-<br>
-
-### SPLN: Add Record reference in active project
----
-💡 **Tip:** For more accurate work before running the command remove "NoImplicitWith" feature from manifest file (app.json).
-
-⚠️ **Warning:** Added in manifest file "NoImplicitWith" feature turns Rec reference missing warning into an error ('...does not exist in the current context.') which complicates the search for the command, so it could add Rec where it should not be added. In that case after this command you will need to run `SPLN: Add Record reference in active project. Clean up!` command or clean up Rec reference manually.
-
-When the command will start the work you will see the file to open, be modified and saved.
-When none of the files was opened, but the message from command were received means there is nothing left to modify.
-Rec reference will be added only to page and pageextension objects.
-
-![Rec reference added](images/image-1.png)
-
-📝 **Note:** Almost always should be ran more than once!
-
-![Please run again](images/image-3.png)
-
-<br>
-
-### SPLN: Add Record reference in active files
----
-💡 **Tip:** As with previous command before running would recommend to remove "NoImplicitWith" feature from manifest file (app.json). 
-
-⚠️ **Warning:** Added in manifest file "NoImplicitWith" feature turns Rec reference missing warning into different errors which complicates the search for the command, so it could add Rec where it should not be added. In that case after this command you will need to run `SPLN: Add Record reference in active files. Clean up!` command or clean up manually.
-
-![Rec reference added. Run next command](images/image-2.png)
-
-📝 **Note:** Almost always should be ran more than once!
-
-<br>
-
-### SPLN: Add Record reference in active project. Clean up!
----
-Simply removes Rec reference from code where it causes errors. Recommended to ran after `SPLN: Add Record reference in active project` when missing Rec reference causes an error not a warning. 
-Rec reference will be added only to page and pageextension objects.
-Accidentally ran command won't hurt your code.
-
-📝 **Note:** Almost always should be ran more than once!
-
-<br>
-
-### SPLN: Add Record reference in active files. Clean up!
----
-Simply removes Rec reference from code where it causes errors, but only for opened files. Recommended to ran after `SPLN: Add Record reference in active files` when missing Rec reference causes an error not a warning. Accidentally ran command won't hurt your code.
-
-📝 **Note:** Almost always should be ran more than once!
 
 <br>
 
@@ -150,7 +98,7 @@ Command will add provided affix to all object names, table extension fields and 
 
 ⚠️ **Warning:** Command won't add affix to pageextension custom fields, this action does `SPLN: Add Suffix part 2. Resolve errors` and `SPLN: Add Prefix part 2. Resolve errors`.
 
-💡 **Tip:** Before running the command would recommend to add Rec reference or remove "NoImplicitWith" feature from manifest file (app.json) to make step 2 be more accurate in resolving erros.
+💡 **Tip:** Before running this command would recommend to run first `AZ AL Dev Tools: Remove 'with' usage category from Active Project` or at least remove "NoImplicitWith" feature from manifest file (app.json) to make step 2 be more accurate in resolving erros.
 
 📝 **Note:** Step 2 and step 3 commands can't be ran without step 1. Even if you already added affix and don't need step 1 run anyways to provide affix value to the system.
 
