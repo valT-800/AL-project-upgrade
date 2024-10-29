@@ -55,8 +55,8 @@ async function removeSuffixCausingAnError(file, content, suffix) {
             const errorSnippet = errorLine.substring(startPosition.character, endPosition.character);
             let updatedLine = errorLine;
             // Remove suffix when from error causer
-            if (errorSnippet.includes(`_${suffix}`)) {
-                let updatedSnippet = errorSnippet.replaceAll(`_${suffix}`, '');
+            if (errorSnippet.includes(`${suffix}`)) {
+                let updatedSnippet = errorSnippet.replaceAll(`${suffix}`, '');
                 updatedLine = errorLine.replace(errorSnippet, updatedSnippet);
             }
             updatedContent = updatedContent.replace(errorLine, updatedLine);

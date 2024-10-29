@@ -56,8 +56,8 @@ async function removePrefixCausingAnError(file, content, prefix) {
             const errorSnippet = errorLine.substring(startPosition.character, endPosition.character);
             let updatedLine = errorLine;
             // Remove prefix when from error causer
-            if (errorSnippet.includes(`${prefix}_`)) {
-                let updatedSnippet = errorSnippet.replace(`${prefix}_`, '');
+            if (errorSnippet.includes(`${prefix}`)) {
+                let updatedSnippet = errorSnippet.replace(`${prefix}`, '');
                 updatedLine = errorLine.replace(errorSnippet, updatedSnippet);
             }
             updatedContent = updatedContent.replace(errorLine, updatedLine);

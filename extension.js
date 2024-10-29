@@ -34,45 +34,55 @@ function activate(context) {
 		vscode.window.showInformationMessage(await addApplicationArea());
 		vscode.window.showInformationMessage(await changeReportsLayoutPath());
 
-		const provideAffix = async (/** @type {string} */ affix) => {
-			let message = 'Does objects have an affix already added?';
-			if (affix !== '') {
-				const confirmAffix = await vscode.window.showInformationMessage(`Confirm saved affix - ${affix}`, 'Confirm', 'Decline');
-				if (confirmAffix == 'Confirm') return affix;
-				else message = 'Does objects have another affix already added?';
+		const provideSuffix = async (/** @type {string} */ suffix) => {
+			if (suffix !== '') {
+				const confirmSuffix = await vscode.window.showInformationMessage(`Confirm saved suffix - ${suffix}`, 'Confirm', 'Decline');
+				if (confirmSuffix == 'Confirm') return suffix;
 			}
-			// Know affix value from user
-			const answer = await vscode.window.showInformationMessage(message, 'No', 'Yes');
-			if (answer == 'Yes') {
-				const affix = await vscode.window.showInputBox({ prompt: 'Enter the affix to add' });
-				if (!affix) {
-					// Repeat function when affix should've been provided but wasn't
-					provideAffix();
-				}
-				return affix;
+			// Know suffix value from user
+			suffix = await vscode.window.showInputBox({ prompt: 'Enter the suffix to add (example: "_SUFFIX")' });
+			if (!suffix) {
+				// Repeat function when suffix should've been provided but wasn't
+				provideSuffix();
 			}
-			return '';
+			return suffix;
+		}
+		// Know prefix value from user
+		const providePrefix = async (/** @type {string} */ prefix) => {
+			if (prefix !== '') {
+				const confirmPrefix = await vscode.window.showInformationMessage(`Confirm saved prefix - ${prefix}`, 'Confirm', 'Decline');
+				if (confirmPrefix == 'Confirm') return prefix;
+			}
+			prefix = await vscode.window.showInputBox({ prompt: 'Enter the prefix to add (example: "PREFIX_")' });
+			if (!prefix) {
+				// Repeat function when prefix should've been provided but wasn't
+				providePrefix();
+			}
+			return prefix;
 		}
 
-		// Get affix from the saved suffix and prefix values
-		let affix = '';
-		if (suffix != '') affix = suffix;
-		else if (prefix != '') affix = prefix;
-		// Confirm affix saved by the system or get the affix from user
-		affix = await provideAffix(affix);
-
 		// Know from user if extension market should be added to extension objects name
-		const answer = await vscode.window.showInformationMessage('Do you want to add extension marker to an extension objects names?', 'No', 'Yes');
+		const answerExtMarker = await vscode.window.showInformationMessage('Do you want to add extension marker to an extension objects names?', 'No', 'Yes');
 		let addExtMarker = false;
-		if (answer == 'Yes') addExtMarker = true;
+		if (answerExtMarker == 'Yes') addExtMarker = true;
 
-		vscode.window.showInformationMessage(await renameALExtensions(affix, addExtMarker));
+		const answerAffix = await vscode.window.showInformationMessage('Do you want to add prefix or suffix?', 'none', 'prefix', 'suffix');
+		if (answerAffix == 'prefix') {
+			let affix = await providePrefix(prefix);
+			vscode.window.showInformationMessage(await renameALExtensions(affix, '', addExtMarker));
+		}
+		else if (answerAffix == 'suffix') {
+			let affix = await provideSuffix(prefix);
+			vscode.window.showInformationMessage(await renameALExtensions('', affix, addExtMarker));
+		}
+		else vscode.window.showInformationMessage(await renameALExtensions('', '', addExtMarker));
+
 	});
 
 	const addSuffix1Command = vscode.commands.registerCommand('extension.addSuffix1', async function () {
 		await vscode.commands.executeCommand('workbench.action.closeAllGroups');
 
-		suffix = await vscode.window.showInputBox({ prompt: 'Enter the suffix to add' });
+		suffix = await vscode.window.showInputBox({ prompt: 'Enter the suffix to add (example: "_SUFFIX")' });
 		if (!suffix) {
 			vscode.window.showErrorMessage('No suffix provided.');
 			suffix = '';
@@ -102,7 +112,7 @@ function activate(context) {
 
 	const addPrefix1Command = vscode.commands.registerCommand('extension.addPrefix1', async function () {
 		await vscode.commands.executeCommand('workbench.action.closeAllGroups');
-		prefix = await vscode.window.showInputBox({ prompt: 'Enter the prefix to add' });
+		prefix = await vscode.window.showInputBox({ prompt: 'Enter the prefix to add (example: "PREFIX_")' });
 		if (!prefix) {
 			vscode.window.showErrorMessage('No prefix provided.');
 			prefix = '';

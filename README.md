@@ -41,9 +41,9 @@ Preparing the project consists of structurizing the files if they are not, addin
 
 The ApplicationArea property will be added to all custom page and pageextension fields, request page fields of reports and xmlports, and also to reports and pages that have UsageCategory property set. The property won't be added when the code part already has it.
 
-To rename object extensions the system will ask you if you added affix to object extension name and if you want to add extension marker ("Ext.").
+To rename object extensions the system will ask you if you want to add affix to object extension name and if you want to add extension marker ("Ext.").
 
-![alt text](images/image-10.png)
+![alt text](images/image-6.png)
 ![alt text](images/image-11.png)
 
 <br>
@@ -93,7 +93,7 @@ Does the same as `SPLN: General refactoring in active project`, but only for ope
 ### SPLN: Add Suffix part 1 & SPLN: Add Prefix part 1
 ---
 Both commands work almost the same. 
-At first you will be asked to enter affix (whithout '_' character).
+At first you will be asked to enter affix.
 Command will add provided affix to all object names, table extension fields and procedures, pageextension actions and procedures, report layouts.
 
 ⚠️ **Warning:** Command won't add affix to pageextension custom fields, this action does `SPLN: Add Suffix part 2. Resolve errors` and `SPLN: Add Prefix part 2. Resolve errors`.

@@ -121,13 +121,13 @@ function addSuffixToTableFields(content, suffix) {
     // Add suffix to table fields
     let updatedContent = content.replace(tableFieldPattern, (match, fieldNumber, fieldName) => {
         // Do not change tables field name with already added suffix
-        if (!fieldName.endsWith(`_${suffix}`) && !fieldName.endsWith(`_${suffix}"`)) {
+        if (!fieldName.endsWith(`${suffix}`) && !fieldName.endsWith(`${suffix}"`)) {
             // Add suffix to the field name with quotes
             if (fieldName.startsWith('"'))
-                return match.replace(fieldName, `${fieldName.slice(0, -1)}_${suffix}"`);
+                return match.replace(fieldName, `${fieldName.slice(0, -1)}${suffix}"`);
             else
                 // Add suffix to the field name without quotes
-                return match.replace(fieldName, `${fieldName}_${suffix}`);
+                return match.replace(fieldName, `${fieldName}${suffix}`);
         }
         return match;
     });
@@ -169,18 +169,18 @@ async function addSuffixToReferences(file, content, suffix, errors) {
             const pageFieldPattern = /\bfield\s*\(\s*("[^"]*"|\w+)\s*;\s*("[^"]*"|\w+|("[^"]*"|\w+).("[^"]*"|\w+))\s*\)/g;
             let updatedLine = errorLine.replace(pageFieldPattern, (match, fieldName, fieldSource) => {
 
-                if (!fieldName.includes(`_${suffix}`)) {
+                if (!fieldName.includes(`${suffix}`)) {
                     // Add suffix to field name and field source with quotes
                     if (fieldName.startsWith('"') && fieldSource.endsWith('"'))
-                        return `field(${fieldName.slice(0, -1)}_${suffix}"; ${fieldSource.slice(0, -1)}_${suffix}")`;
+                        return `field(${fieldName.slice(0, -1)}${suffix}"; ${fieldSource.slice(0, -1)}${suffix}")`;
                     // Add suffix to field name without quotes and field source with quotes
                     else if (!fieldName.startsWith('"') && fieldSource.endsWith('"'))
-                        return `field(${fieldName}_${suffix}; ${fieldSource.slice(0, -1)}_${suffix}")`;
+                        return `field(${fieldName}${suffix}; ${fieldSource.slice(0, -1)}${suffix}")`;
                     // Add suffix to field name with quotes and field source without quotes
                     else if (fieldName.startsWith('"') && !fieldSource.endsWith('"'))
-                        return `field(${fieldName.slice(0, -1)}_${suffix}"; ${fieldSource}_${suffix})`;
+                        return `field(${fieldName.slice(0, -1)}${suffix}"; ${fieldSource}${suffix})`;
                     // Add suffix to field name and field source without quotes
-                    else return `field(${fieldName}_${suffix}; ${fieldSource}_${suffix})`;
+                    else return `field(${fieldName}${suffix}; ${fieldSource}${suffix})`;
                 }
                 return match;
             });
@@ -189,11 +189,11 @@ async function addSuffixToReferences(file, content, suffix, errors) {
             if (errorLine == updatedLine) {
                 const calcfieldPattern = /\b(filter|field)\s*\(\s*("[^"]*"|\w+)\s*\)/gi;
                 let updatedSnippet = errorSnippet.replace(calcfieldPattern, (match, method, field) => {
-                    if (!field.includes(`_${suffix}`)) {
+                    if (!field.includes(`${suffix}`)) {
                         // Add suffix to field name with quotes
-                        if (field.startsWith('"')) return match.replace(field, `"${field.slice(1, -1)}_${suffix}"`);
+                        if (field.startsWith('"')) return match.replace(field, `"${field.slice(1, -1)}${suffix}"`);
                         // Add suffix to field name without quotes
-                        else return match.replace(field, `${field}_${suffix}`);
+                        else return match.replace(field, `${field}${suffix}`);
                     }
                     return match;
                 });
@@ -202,11 +202,11 @@ async function addSuffixToReferences(file, content, suffix, errors) {
             if (errorLine == updatedLine) {
                 const calcfieldPattern = /("[^"]*"|\w+)\s*=\s*\b(filter|field)\s*\(\s*("[^"]*"|\w+)\s*\)/gi;
                 let updatedSnippet = errorSnippet.replace(calcfieldPattern, (match, match1, method, field) => {
-                    if (!match1.includes(`_${suffix}`)) {
+                    if (!match1.includes(`${suffix}`)) {
                         // Add suffix to field name with quotes
-                        if (match1.startsWith('"')) return match.replace(match1, `"${match1.slice(1, -1)}_${suffix}"`);
+                        if (match1.startsWith('"')) return match.replace(match1, `"${match1.slice(1, -1)}${suffix}"`);
                         // Add suffix to field name without quotes
-                        else return match.replace(match1, `${match1}_${suffix}`);
+                        else return match.replace(match1, `${match1}${suffix}`);
                     }
                     return match;
                 });
@@ -217,12 +217,12 @@ async function addSuffixToReferences(file, content, suffix, errors) {
             if (errorLine == updatedLine) {
                 const variablePattern = /\b(Record|Query|XMLport|Report|Codeunit|Page)\s+("[^"]*"|\w+)\s*/gi;
                 let updatedSnippet = errorSnippet.replace(variablePattern, (match, variableType, variableSource) => {
-                    if (errorSnippet == match && !variableSource.includes(`_${suffix}`)) {
+                    if (errorSnippet == match && !variableSource.includes(`${suffix}`)) {
                         // Add suffix to variable source name with quotes
                         if (variableSource.endsWith('"'))
-                            return match.replace(variableSource, `"${variableSource.slice(1, -1)}_${suffix}"`);
+                            return match.replace(variableSource, `"${variableSource.slice(1, -1)}${suffix}"`);
                         // Add suffix to variable source name without quotes
-                        else return match.replace(variableSource, `${variableSource}_${suffix}`);
+                        else return match.replace(variableSource, `${variableSource}${suffix}`);
                     }
                     return match;
                 });
@@ -232,14 +232,14 @@ async function addSuffixToReferences(file, content, suffix, errors) {
             if (errorLine == updatedLine) {
                 const recFieldPattern = /("[^"]*"|(?<!")\w+)\.("[^"]*"|(?<!")\w+)/g;
                 let updatedSnippet = errorSnippet.replace(recFieldPattern, (match, record, field) => {
-                    if (errorSnippet == match && !field.includes(`_${suffix}`)) {
+                    if (errorSnippet == match && !field.includes(`${suffix}`)) {
                         // Do not add suffix when pattern found inside a field or object reference
                         if (errorSnippet.startsWith('"') && !record.endsWith('"')) return match;
                         // Add suffix to field or object name with quotes
                         if (field.startsWith('"'))
-                            return match.replace(field, `${field.slice(0, -1)}_${suffix}"`);
+                            return match.replace(field, `${field.slice(0, -1)}${suffix}"`);
                         // Add suffix to field or procedure name without quotes
-                        else return match.replace(field, `${field}_${suffix}`);
+                        else return match.replace(field, `${field}${suffix}`);
                     }
                     return match;
                 });
@@ -250,13 +250,13 @@ async function addSuffixToReferences(file, content, suffix, errors) {
                 // Regex for fields going after some common characters
                 let pattern = /(=\s*|\(|\+\s*|-\s*|<\s*|>\s*|\*\s*|\s*\/|\.|\,\s*|;\s*|\bif\s*|\bor\s*|\bcase\s*)("[^"]+"|\w+)/gi;
                 errorLine.replace(pattern, (match, m1, field) => {
-                    if (errorSnippet == field && !field.includes(`_${suffix}`)) {
+                    if (errorSnippet == field && !field.includes(`${suffix}`)) {
                         // Add suffix to field or object name with quotes
                         if (errorSnippet.endsWith('"'))
-                            updatedLine = `${errorLine.slice(0, startPosition.character)}${errorSnippet.slice(0, -1)}_${suffix}"${errorLine.slice(endPosition.character)}`;
+                            updatedLine = `${errorLine.slice(0, startPosition.character)}${errorSnippet.slice(0, -1)}${suffix}"${errorLine.slice(endPosition.character)}`;
                         // Add suffix to field or object name without quotes
                         else
-                            updatedLine = `${errorLine.slice(0, startPosition.character)}${errorSnippet}_${suffix}${errorLine.slice(endPosition.character)}`;
+                            updatedLine = `${errorLine.slice(0, startPosition.character)}${errorSnippet}${suffix}${errorLine.slice(endPosition.character)}`;
                     }
                     return match;
                 });
@@ -264,13 +264,13 @@ async function addSuffixToReferences(file, content, suffix, errors) {
                     // Regex for fields and tables followed by some common characters
                     pattern = /("[^"]+"|\w+)(\s*;|\s*,|\s*\(|\s*\)|\s*:|\s*=|\s*<|\s*>|\s*\+|\s*\-|\s*\/|\s*\*|\s*\/|\s+then|\.|\s*where|\s*in|\s*and)/gi;
                     errorLine.replace(pattern, (match, object) => {
-                        if (errorSnippet == object && !object.includes(`_${suffix}`)) {
+                        if (errorSnippet == object && !object.includes(`${suffix}`)) {
                             // Add suffix to field or object name with quotes
                             if (errorSnippet.endsWith('"'))
-                                updatedLine = `${errorLine.slice(0, startPosition.character)}${errorSnippet.slice(0, -1)}_${suffix}"${errorLine.slice(endPosition.character)}`;
+                                updatedLine = `${errorLine.slice(0, startPosition.character)}${errorSnippet.slice(0, -1)}${suffix}"${errorLine.slice(endPosition.character)}`;
                             // Add suffix to field or object name without quotes
                             else
-                                updatedLine = `${errorLine.slice(0, startPosition.character)}${errorSnippet}_${suffix}${errorLine.slice(endPosition.character)}`;
+                                updatedLine = `${errorLine.slice(0, startPosition.character)}${errorSnippet}${suffix}${errorLine.slice(endPosition.character)}`;
                         }
                         return match;
                     });
@@ -278,7 +278,7 @@ async function addSuffixToReferences(file, content, suffix, errors) {
             }
             updatedContent = updatedContent.replace(errorLine, updatedLine);
             // Remove suffix dublicates
-            updatedContent = updatedContent.replace(`_${suffix}_${suffix}`, `_${suffix}`);
+            updatedContent = updatedContent.replace(`${suffix}${suffix}`, `${suffix}`);
         });
         return updatedContent;
     }
@@ -299,12 +299,12 @@ function addSuffixToActions(content, suffix) {
 
     // Add suffix to actions
     let updatedContent = content.replace(actionPattern, (match, actionName) => {
-        if (!actionName.endsWith(`_${suffix}`) && !actionName.endsWith(`_${suffix}"`)) {
+        if (!actionName.endsWith(`${suffix}`) && !actionName.endsWith(`${suffix}"`)) {
             // Add suffix to action name with quotes
             if (actionName.startsWith('"'))
-                return match.replace(actionName, `"${actionName.slice(1, -1)}_${suffix}"`);
+                return match.replace(actionName, `"${actionName.slice(1, -1)}${suffix}"`);
             // Add suffix to action name without quotes
-            else return match.replace(actionName, `${actionName}_${suffix}`);
+            else return match.replace(actionName, `${actionName}${suffix}`);
         }
         return match;
     });
@@ -321,12 +321,12 @@ function addSuffixToReportLayouts(content, suffix) {
 
     // Add suffix to report layouts
     let updatedContent = content.replace(reportLayoutPattern, (match, layoutName) => {
-        if (!layoutName.endsWith(`_${suffix}`) && !layoutName.endsWith(`_${suffix}"`)) {
+        if (!layoutName.endsWith(`${suffix}`) && !layoutName.endsWith(`${suffix}"`)) {
             // Add suffix to layout name with quotes
             if (layoutName.startsWith('"'))
-                return match.replace(layoutName, `"${layoutName.slice(1, -1)}_${suffix}"`);
+                return match.replace(layoutName, `"${layoutName.slice(1, -1)}${suffix}"`);
             // Add suffix to layout name without quotes
-            else return match.replace(layoutName, `${layoutName}_${suffix}`);
+            else return match.replace(layoutName, `${layoutName}${suffix}`);
         }
         return match;
     });
@@ -344,12 +344,12 @@ function addSuffixToProcedures(content, suffix) {
     const procedurePattern = /\bprocedure\s+("[^"]+"|\w+)\s+\(/g;
 
     let updatedContent = content.replace(procedurePattern, (match, procedureName) => {
-        if (!procedureName.endsWith(`_${suffix}`) && !procedureName.endsWith(`_${suffix}"`)) {
+        if (!procedureName.endsWith(`${suffix}`) && !procedureName.endsWith(`${suffix}"`)) {
             // Add suffix to procedure name with quotes
             if (procedureName.startsWith('"'))
-                return match.replace(procedureName, `"${procedureName.slice(1, -1)}_${suffix}"`);
+                return match.replace(procedureName, `"${procedureName.slice(1, -1)}${suffix}"`);
             // Add suffix to procedure name without quotes
-            else return match.replace(procedureName, `${procedureName}_${suffix}`);
+            else return match.replace(procedureName, `${procedureName}${suffix}`);
         }
         return match;
     });
@@ -367,12 +367,12 @@ function addSuffixToALObjectName(content, suffix) {
     const objectPattern = /\b(page|table|codeunit|report|enum|query|xmlport|profile|controladdin|permissionset|interface|tableextension|pageextension|reportextension|enumextension|permissionsetextension)\s+(\d+)\s+("[^"]+"|\w+)\s*(\{|extends)/g;
 
     let updatedContent = content.replace(objectPattern, (match, objectType, objectNumber, objectName) => {
-        if (!objectName.endsWith(`_${suffix}`) && !objectName.endsWith(`_${suffix}"`)) {
+        if (!objectName.endsWith(`${suffix}`) && !objectName.endsWith(`${suffix}"`)) {
             // Add suffix to the object name with quotes
             if (objectName.startsWith('"'))
-                return match.replace(objectName, `"${objectName.slice(1, -1)}_${suffix}"`);
+                return match.replace(objectName, `"${objectName.slice(1, -1)}${suffix}"`);
             // Add suffix to the object name without quotes
-            return match.replace(objectName, `${objectName}_${suffix}`);
+            return match.replace(objectName, `${objectName}${suffix}`);
         }
         return match;
     });

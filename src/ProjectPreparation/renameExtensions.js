@@ -1,6 +1,6 @@
 const { getALFiles, writeFile, getFileContent } = require('../ProjectWorkspaceManagement/workspaceMgt');
 
-module.exports.renameALExtensions = async function (/** @type {string} */ affix, /** @type {boolean} */ addExtMarker) {
+module.exports.renameALExtensions = async function (/** @type {string} */ prefix, /** @type {string} */ suffix, /** @type {boolean} */ addExtMarker) {
 
     let standardALfiles = await getALFiles('src/Standard');
     if (!standardALfiles) return;
@@ -9,7 +9,7 @@ module.exports.renameALExtensions = async function (/** @type {string} */ affix,
 
     for (const file of standardALfiles) {
         const fileContent = await getFileContent(file);
-        const updatedContent = renameALExtensionObject(fileContent, affix, addExtMarker);
+        const updatedContent = renameALExtensionObject(fileContent, prefix, suffix, addExtMarker);
         if (updatedContent !== fileContent) {
             // Write the updated content back to the file
             await writeFile(file, updatedContent);
@@ -21,10 +21,11 @@ module.exports.renameALExtensions = async function (/** @type {string} */ affix,
 /**
  * Find extension object names and replace with its source object names
  * @param {string} content
- * @param {string} affix - already added to the name of extension
+ * @param {string} prefix
+ * @param {string} suffix
  * @param {boolean} addExtMarker
  */
-function renameALExtensionObject(content, affix, addExtMarker) {
+function renameALExtensionObject(content, prefix, suffix, addExtMarker) {
     // Regex pattern for AL extension objects
     const objectPattern = /\b(tableextension|pageextension|reportextension|enumextension|permissionsetextension)\s+\d+\s+("[^"]+"|\w+)\s+extends\s+("[^"]+"|\w+)/g;
 
@@ -32,35 +33,37 @@ function renameALExtensionObject(content, affix, addExtMarker) {
     let extMarker = '';
     if (addExtMarker) extMarker = ' Ext.';
 
-    let updatedContent = content.replace(objectPattern, (match, objectType, objectName, objectSource) => {
-        // Rename extension with prefix added
-        if (affix !== '' && objectName.includes(`${affix}_`)) {
-            if (objectSource.startsWith('"'))
-                return match.replace(objectName, `"${affix}_${objectSource.slice(1, -1)}${extMarker}"`);
-            else {
-                if (addExtMarker) return match.replace(objectName, `"${affix}_${objectSource}${extMarker}"`);
-                return match.replace(objectName, `${affix}_${objectSource}`);
-            }
-        }
-        // Rename extension with suffix added
-        else if (affix !== '' && objectName.includes(`_${affix}`)) {
-            if (objectSource.startsWith('"'))
-                return match.replace(objectName, `"${objectSource.slice(1, -1)}${extMarker}_${affix}"`);
-            else {
-                if (addExtMarker) return match.replace(objectName, `"${objectSource}${extMarker}_${affix}"`);
-                return match.replace(objectName, `${objectSource}_${affix}`);
-            }
-        }
-        // Rename extension without affix
+    const addSuffixToExtensionName = (/** @type {string} */ extensionName, /** @type {string} */ suffix) => {
+
+        if (extensionName.startsWith('"'))
+            return `"${extensionName.slice(1, -1)}${suffix}"`;
         else {
-            if (addExtMarker) {
-                if (objectSource.startsWith('"'))
-                    return match.replace(objectName, `"${objectSource.slice(1, -1)}${extMarker}"`);
-                else
-                    return match.replace(objectName, `"${objectSource}${extMarker}"`);
-            }
-            return match.replace(objectName, objectSource);
+            return `${extensionName}${suffix}`;
         }
+    }
+
+    const addPrefixToExtensionName = (/** @type {string} */ extensionName, /** @type {string} */ prefix) => {
+
+        if (extensionName.startsWith('"'))
+            return `"${prefix}${extensionName.slice(1, -1)}"`;
+        else {
+            return `${prefix}${extensionName}`;
+        }
+    }
+
+    let updatedContent = content.replace(objectPattern, (match, objectType, objectName, objectSource) => {
+        let newObjectName = objectSource;
+        if (objectSource.startsWith('"'))
+            newObjectName = `"${objectSource.slice(1, -1)}${extMarker}"`;
+        else {
+            if (addExtMarker) newObjectName = `"${objectSource}${extMarker}"`;
+        }
+        if (prefix != '')
+            newObjectName = addPrefixToExtensionName(newObjectName, prefix);
+        else if (suffix != '')
+            newObjectName = addSuffixToExtensionName(newObjectName, suffix);
+
+        return match.replace(objectName, newObjectName);
     });
 
     return updatedContent;

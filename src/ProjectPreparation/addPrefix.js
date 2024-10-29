@@ -121,13 +121,13 @@ function addPrefixToTableFields(content, prefix) {
 
     // Add prefix to table fields
     let updatedContent = content.replace(tableFieldPattern, (match, fieldNumber, fieldName) => {
-        if (!fieldName.startsWith(`${prefix}_`) && !fieldName.startsWith(`"${prefix}_`)) {
+        if (!fieldName.startsWith(`${prefix}`) && !fieldName.startsWith(`"${prefix}`)) {
             // Add prefix to the field name with quotes
             if (fieldName.startsWith('"'))
-                return match.replace(fieldName, `"${prefix}_${fieldName.slice(1, -1)}"`);
+                return match.replace(fieldName, `"${prefix}${fieldName.slice(1, -1)}"`);
             else
                 // Add prefix to the field name without quotes
-                return match.replace(fieldName, `${prefix}_${fieldName}`);
+                return match.replace(fieldName, `${prefix}${fieldName}`);
         }
         return match;
     });
@@ -174,19 +174,19 @@ async function addPrefixToReferences(file, content, prefix, errors) {
                     rec = 'Rec.';
                 }
 
-                if (!fieldName.includes(`${prefix}_`)) {
+                if (!fieldName.includes(`${prefix}`)) {
                     // Add prefix to field name and field source with quotes
                     if (fieldName.startsWith('"') && fieldSource.startsWith('"'))
-                        return `field("${prefix}_${fieldName.slice(1)}; ${rec}"${prefix}_${fieldSource.slice(1)})`;
+                        return `field("${prefix}${fieldName.slice(1)}; ${rec}"${prefix}${fieldSource.slice(1)})`;
                     // Add prefix to field name without quotes and field source with quotes
                     else if (!fieldName.startsWith('"') && fieldSource.startsWith('"'))
-                        return `field(${prefix}_${fieldName}; ${rec}"${prefix}_${fieldSource.slice(1)})`;
+                        return `field(${prefix}${fieldName}; ${rec}"${prefix}${fieldSource.slice(1)})`;
                     // Add prefix to field name with quotes and field source without quotes
                     else if (fieldName.startsWith('"') && !fieldSource.startsWith('"'))
-                        return `field("${prefix}_${fieldName.slice(1)}; ${rec}${prefix}_${fieldSource})`;
+                        return `field("${prefix}${fieldName.slice(1)}; ${rec}${prefix}${fieldSource})`;
                     // Add prefix to field name and field source without quotes
                     else
-                        return `field(${prefix}_${fieldName}; ${rec}${prefix}_${fieldSource})`;
+                        return `field(${prefix}${fieldName}; ${rec}${prefix}${fieldSource})`;
                 }
 
                 return match;
@@ -196,12 +196,12 @@ async function addPrefixToReferences(file, content, prefix, errors) {
             if (errorLine == updatedLine) {
                 const calcfieldPattern = /\b(filter|field)\s*\(\s*("[^"]*"|\w+)\s*\)/gi;
                 let updatedSnippet = errorSnippet.replace(calcfieldPattern, (match, method, field) => {
-                    if (!field.includes(`${prefix}_`)) {
+                    if (!field.includes(`${prefix}`)) {
                         // Add prefix to field name with quotes
                         if (field.startsWith('"'))
-                            return match.replace(field, `"${prefix}_${field.slice(1)}`);
+                            return match.replace(field, `"${prefix}${field.slice(1)}`);
                         // Add prefix to field name without quotes
-                        else return match.replace(field, `${prefix}_${field}`);
+                        else return match.replace(field, `${prefix}${field}`);
                     }
                     return match;
                 });
@@ -210,9 +210,9 @@ async function addPrefixToReferences(file, content, prefix, errors) {
             if (errorLine == updatedLine) {
                 const calcfieldPattern = /("[^"]*"|\w+)\s*=\s*\b(filter|field)\s*\(\s*("[^"]*"|\w+)\s*\)/gi;
                 let updatedSnippet = errorSnippet.replace(calcfieldPattern, (match, match1, method, field) => {
-                    if (!match1.includes(`${prefix}_`)) {
+                    if (!match1.includes(`${prefix}`)) {
                         // Add suffix to field name with quotes
-                        if (match1.startsWith('"')) return match.replace(match1, `"${prefix}_${match1.slice(1, -1)}"`);
+                        if (match1.startsWith('"')) return match.replace(match1, `"${prefix}${match1.slice(1, -1)}"`);
                         // Add suffix to field name without quotes
                         else return match.replace(match1, `${prefix}${match1}`);
                     }
@@ -224,12 +224,12 @@ async function addPrefixToReferences(file, content, prefix, errors) {
             if (errorLine == updatedLine) {
                 const variablePattern = /\b(Record|Query|XMLport|Report|Codeunit|Page)\s+("[^"]*"|\w+)\s*/gi;
                 let updatedSnippet = errorSnippet.replace(variablePattern, (match, variableType, variableSource) => {
-                    if (errorSnippet == match && !variableSource.includes(`${prefix}_`)) {
+                    if (errorSnippet == match && !variableSource.includes(`${prefix}`)) {
                         // Add prefix to variable source name with quotes
                         if (variableSource.startsWith('"'))
-                            return match.replace(variableSource, `"${prefix}_${variableSource.slice(1)}`);
+                            return match.replace(variableSource, `"${prefix}${variableSource.slice(1)}`);
                         // Add prefix to variable source name without quotes
-                        else return match.replace(variableSource, `${prefix}_${variableSource}`);
+                        else return match.replace(variableSource, `${prefix}${variableSource}`);
                     }
                     return match;
                 });
@@ -239,14 +239,14 @@ async function addPrefixToReferences(file, content, prefix, errors) {
             if (errorLine == updatedLine) {
                 const recFieldPattern = /("[^"]*"|(?<!")\w+)\.("[^"]*"|(?<!")\w+)/g;
                 let updatedSnippet = errorSnippet.replace(recFieldPattern, (match, record, field) => {
-                    if (errorSnippet == match && !field.includes(`${prefix}_`)) {
+                    if (errorSnippet == match && !field.includes(`${prefix}`)) {
                         // Do not add prefix when pattern found inside a field or object reference
                         if (errorSnippet.startsWith('"') && !record.endsWith('"')) return match;
                         // Add prefix to field or object name with quotes
                         if (field.startsWith('"'))
-                            return match.replace(field, `"${prefix}_${field.slice(1)}`);
+                            return match.replace(field, `"${prefix}${field.slice(1)}`);
                         // Add prefix to field or procedure name without quotes
-                        else return match.replace(field, `${prefix}_${field}`);
+                        else return match.replace(field, `${prefix}${field}`);
                     }
                     return match;
                 });
@@ -257,13 +257,13 @@ async function addPrefixToReferences(file, content, prefix, errors) {
                 // Regex for field references going after some common characters
                 let pattern = /(=\s*|\(|\+\s*|-\s*|<\s*|>\s*|\*\s*|\s*\/|\.|\,\s*|;\s*|\bif\s*|\bor\s*|\bcase\s*)("[^"]+"|\w+)/gi;
                 errorLine.replace(pattern, (match, m1, field) => {
-                    if (errorSnippet == field && !field.includes(`${prefix}_`)) {
+                    if (errorSnippet == field && !field.includes(`${prefix}`)) {
                         // Add prefix to field or object name with quotes
                         if (errorSnippet.startsWith('"'))
-                            updatedLine = `${errorLine.slice(0, startPosition.character)}"${prefix}_${errorSnippet.slice(1)}${errorLine.slice(endPosition.character)}`;
+                            updatedLine = `${errorLine.slice(0, startPosition.character)}"${prefix}${errorSnippet.slice(1)}${errorLine.slice(endPosition.character)}`;
                         // Add prefix to field or object name without quotes
                         else
-                            updatedLine = `${errorLine.slice(0, startPosition.character)}${prefix}_${errorSnippet}${errorLine.slice(endPosition.character)}`;
+                            updatedLine = `${errorLine.slice(0, startPosition.character)}${prefix}${errorSnippet}${errorLine.slice(endPosition.character)}`;
                     }
                     return match;
                 });
@@ -271,13 +271,13 @@ async function addPrefixToReferences(file, content, prefix, errors) {
                     // Regex for field and object references followed by some common characters
                     pattern = /("[^"]+"|\w+)(\s*;|\s*,|\s*\(|\s*\)|\s*:|\s*=|\s*<|\s*>|\s*\+|\s*\-|\s*\/|\s*\*|\s*\/|\s+then|\.|\s*where|\s*in|\s*and)/gi;
                     errorLine.replace(pattern, (match, object) => {
-                        if (errorSnippet == object && !object.includes(`${prefix}_`)) {
+                        if (errorSnippet == object && !object.includes(`${prefix}`)) {
                             // Add prefix to field or object name with quotes
                             if (errorSnippet.startsWith('"'))
-                                updatedLine = `${errorLine.slice(0, startPosition.character)}"${prefix}_${errorSnippet.slice(1)}${errorLine.slice(endPosition.character)}`;
+                                updatedLine = `${errorLine.slice(0, startPosition.character)}"${prefix}${errorSnippet.slice(1)}${errorLine.slice(endPosition.character)}`;
                             // Add prefix to field or object name without quotes
                             else
-                                updatedLine = `${errorLine.slice(0, startPosition.character)}${prefix}_${errorSnippet}${errorLine.slice(endPosition.character)}`;
+                                updatedLine = `${errorLine.slice(0, startPosition.character)}${prefix}${errorSnippet}${errorLine.slice(endPosition.character)}`;
                         }
                         return match;
                     });
@@ -285,7 +285,7 @@ async function addPrefixToReferences(file, content, prefix, errors) {
             }
             updatedContent = updatedContent.replace(errorLine, updatedLine);
             // Remove prefix dublicates
-            updatedContent = updatedContent.replace(`${prefix}_${prefix}_`, `${prefix}_`);
+            updatedContent = updatedContent.replace(`${prefix}${prefix}`, `${prefix}`);
 
         });
         return updatedContent;
@@ -308,12 +308,12 @@ function addPrefixToActions(content, prefix) {
 
     // Add prefix to actions
     let updatedContent = content.replace(actionPattern, (match, actionName) => {
-        if (!actionName.startsWith(`${prefix}_`) && !actionName.startsWith(`"${prefix}_`)) {
+        if (!actionName.startsWith(`${prefix}`) && !actionName.startsWith(`"${prefix}`)) {
             // Add prefix to action name with quotes
             if (actionName.startsWith('"'))
-                return match.replace(actionName, `"${prefix}_${actionName.slice(1, -1)}"`);
+                return match.replace(actionName, `"${prefix}${actionName.slice(1, -1)}"`);
             // Add prefix to action name without quotes
-            else return match.replace(actionName, `${prefix}_${actionName}`);
+            else return match.replace(actionName, `${prefix}${actionName}`);
         }
         return match;
     });
@@ -332,12 +332,12 @@ function addPrefixToLayouts(content, prefix) {
 
     // Add prefix to report layouts
     let updatedContent = content.replace(reportLayoutPattern, (match, layoutName) => {
-        if (!layoutName.startsWith(`${prefix}_`) && !layoutName.startsWith(`"${prefix}_`)) {
+        if (!layoutName.startsWith(`${prefix}`) && !layoutName.startsWith(`"${prefix}`)) {
             // Add prefix to layout name with quotes
             if (layoutName.startsWith('"'))
-                return match.replace(layoutName, `"${prefix}_${layoutName.slice(1, -1)}"`);
+                return match.replace(layoutName, `"${prefix}${layoutName.slice(1, -1)}"`);
             // Add prefix to layout name without quotes
-            else return match.replace(layoutName, `${prefix}_${layoutName}`);
+            else return match.replace(layoutName, `${prefix}${layoutName}`);
         }
         return match;
     });
@@ -355,12 +355,12 @@ function addPrefixToProcedures(content, prefix) {
     const procedurePattern = /\bprocedure\s+("[^"]+"|\w+)\s+\(/g;
 
     let updatedContent = content.replace(procedurePattern, (match, procedureName) => {
-        if (!procedureName.startsWith(`${prefix}_`) && !procedureName.startsWith(`"${prefix}_`)) {
+        if (!procedureName.startsWith(`${prefix}`) && !procedureName.startsWith(`"${prefix}`)) {
             // Add prefix to procedure name with quotes
             if (procedureName.startsWith('"'))
-                return match.replace(procedureName, `"${prefix}_${procedureName.slice(1, -1)}"`);
+                return match.replace(procedureName, `"${prefix}${procedureName.slice(1, -1)}"`);
             // Add prefix to procedure name without quotes
-            else return match.replace(procedureName, `${prefix}_${procedureName}`);
+            else return match.replace(procedureName, `${prefix}${procedureName}`);
         }
         return match;
     });
@@ -379,12 +379,12 @@ function addPrefixToALObjectName(content, prefix) {
     const objectPattern = /\b(page|table|codeunit|report|enum|query|xmlport|profile|controladdin|permissionset|interface|tableextension|pageextension|reportextension|enumextension|permissionsetextension)\s+(\d+)\s+("[^"]+"|\w+)\s*(\{|extends)/g;
 
     let updatedContent = content.replace(objectPattern, (match, objectType, objectNumber, objectName) => {
-        if (!objectName.startsWith(`${prefix}_`) && !objectName.startsWith(`"${prefix}_`)) {
+        if (!objectName.startsWith(`${prefix}`) && !objectName.startsWith(`"${prefix}`)) {
             // Add prefix to the object name with quotes
             if (objectName.startsWith('"'))
-                return match.replace(objectName, `"${prefix}_${objectName.slice(1, -1)}"`);
+                return match.replace(objectName, `"${prefix}${objectName.slice(1, -1)}"`);
             // Add prefix to the object name without quotes
-            else return match.replace(objectName, `${prefix}_${objectName}`);
+            else return match.replace(objectName, `${prefix}${objectName}`);
         }
         return match;
     });
