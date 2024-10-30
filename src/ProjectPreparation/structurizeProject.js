@@ -55,6 +55,13 @@ module.exports.structurizeProject = async function () {
             if (!folderExist) createFolder('SRC/Custom/Reports/RdlcLayouts');
             moveFile(file, 'SRC/Custom/Reports/RdlcLayouts');
         }
+        else if (file.endsWith('.docx')) {
+            folderExist = await folderExists('SRC/Custom/Reports');
+            if (!folderExist) createFolder('SRC/Custom/Reports');
+            folderExist = await folderExists('SRC/Custom/Reports/WordLayouts');
+            if (!folderExist) createFolder('SRC/Custom/Reports/WordLayouts');
+            moveFile(file, 'SRC/Custom/Reports/WordLayouts');
+        }
         else if (file.endsWith('.PageExt.al')) {
             if (!folderExist) createFolder('SRC/Standard/PageExtensions');
             moveFile(file, 'SRC/Standard/PageExtensions');
