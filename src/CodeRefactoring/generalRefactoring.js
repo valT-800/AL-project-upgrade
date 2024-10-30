@@ -132,7 +132,7 @@ function refactorGetLanguageID(content) {
     let pattern = /\w+.GetLanguageID\(/gi;
     let updatedContent = content.replaceAll(pattern, 'languageMgt.GetLanguageIdOrDefault(');
     if (updatedContent !== content) {
-        pattern = /(\s+)\w+:\s*Record Language;/gi;
+        pattern = /(\s+)\w+:\s*\bRecord\s+(Language|"Language");/gi;
         // Add Language codeunit variable after used before Language record variable
         updatedContent = updatedContent.replace(pattern, (match, space) => {
             return `${match}${space}languageMgt: Codeunit Language;`;
