@@ -33,38 +33,16 @@ function renameALExtensionObject(content, prefix, suffix, addExtMarker) {
 
     // Declare extension marker when function told to add extension marker
     let extMarker = '';
-    if (addExtMarker) extMarker = ' Ext.';
-
-    const addSuffixToExtensionName = (/** @type {string} */ extensionName, /** @type {string} */ suffix) => {
-
-        if (extensionName.startsWith('"'))
-            return `"${extensionName.slice(1, -1)}${suffix}"`;
-        else {
-            return `${extensionName}${suffix}`;
-        }
-    }
-
-    const addPrefixToExtensionName = (/** @type {string} */ extensionName, /** @type {string} */ prefix) => {
-
-        if (extensionName.startsWith('"'))
-            return `"${prefix}${extensionName.slice(1, -1)}"`;
-        else {
-            return `${prefix}${extensionName}`;
-        }
-    }
+    if (addExtMarker) extMarker = 'Ext';
 
     let updatedContent = content.replace(objectPattern, (match, objectType, objectName, objectSource) => {
-        let newObjectName = objectSource;
-        if (objectSource.startsWith('"'))
-            newObjectName = `"${objectSource.slice(1, -1)}${extMarker}"`;
-        else {
-            if (addExtMarker) newObjectName = `"${objectSource}${extMarker}"`;
-        }
+        // Create extension name from its source without spaces and characters
+        let newObjectName = objectSource.replace(/[^a-zA-Z]/g, '');
         if (prefix != '')
-            newObjectName = addPrefixToExtensionName(newObjectName, prefix);
+            newObjectName = `${prefix}${newObjectName}${extMarker}`;
         else if (suffix != '')
-            newObjectName = addSuffixToExtensionName(newObjectName, suffix);
-
+            newObjectName = `${newObjectName}${extMarker}${suffix}`;
+        else newObjectName = `${newObjectName}${extMarker}`;
         return match.replace(objectName, newObjectName);
     });
 
