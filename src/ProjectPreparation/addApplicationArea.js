@@ -2,15 +2,15 @@ const { getALFiles, writeFile, getFileContent } = require('../ProjectWorkspaceMa
 
 module.exports.addApplicationArea = async function () {
 
-    const ALfiles = await getALFiles('src');
+    const ALfiles = await getALFiles('');
     if (!ALfiles) return;
     if (ALfiles.length === 0)
-        return 'No AL files found in the src directory.';
+        return 'No AL files found in the workspace.';
 
     // Declare when any files have been changed
     let changed = false;
 
-    // Go through every src directory AL file
+    // Go through every file
     for (const file of ALfiles) {
         // Read and modify the file object name
         const fileContent = await getFileContent(file);

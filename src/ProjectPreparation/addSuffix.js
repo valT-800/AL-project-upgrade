@@ -5,36 +5,21 @@ const fs = require('fs');
 
 module.exports.addSuffix1 = async function (/** @type {string} */ suffix) {
 
-    const customALfiles = await getALFiles('src/Custom');
-    const standardALfiles = await getALFiles('src/Standard');
-    if (!customALfiles && !standardALfiles) return;
-    if (customALfiles.length === 0 && standardALfiles.length === 0)
-        return 'No AL files found in the src directory.';
+    const ALfiles = await getALFiles('');
+    if (!ALfiles) return;
+    if (ALfiles.length === 0)
+        return 'No AL files found in the workspace.';
 
     // Declare when any files have been changed
     let changed = false;
 
-    // Go through every src/Custom directory file
-    for (const file of customALfiles) {
+    // Go through every file
+    for (const file of ALfiles) {
         // Read and modify the file object name
         const fileContent = await getFileContent(file);
-        const updatedContent = addSuffixToALObjectName(fileContent, suffix);
-        if (updatedContent !== fileContent) {
-            // Write the updated content back to the file
-            await writeAndSaveFile(file, updatedContent);
-            // Rename the file with suffix added
-            //await addSuffixToFile(file, suffix);
-            // Declare file modification
-            changed = true;
-        }
-    }
-
-    // Go through every src/Standard directory file
-    for (const file of standardALfiles) {
-        // Read and modify the file content
-        const fileContent = await getFileContent(file);
         let updatedContent = addSuffixToALObjectName(fileContent, suffix);
-        updatedContent = addSuffixToTableFields(updatedContent, suffix);
+        if (fileContent.startsWith('tableextension '))
+            updatedContent = addSuffixToTableFields(updatedContent, suffix);
         if (fileContent.startsWith('pageextension '))
             updatedContent = addSuffixToActions(updatedContent, suffix);
         if (fileContent.startsWith('report '))
@@ -56,10 +41,10 @@ module.exports.addSuffix1 = async function (/** @type {string} */ suffix) {
 
 module.exports.addSuffix2 = async function (/** @type {string} */ suffix) {
 
-    const ALfiles = await getALFiles('src');
+    const ALfiles = await getALFiles('');
 
     if (ALfiles.length === 0)
-        return 'No AL files found in the src directory.';
+        return 'No AL files found in the workspace.';
 
     // Declare when any files have been changed
     let changed = false;

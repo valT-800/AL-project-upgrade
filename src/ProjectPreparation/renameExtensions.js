@@ -2,17 +2,19 @@ const { getALFiles, writeFile, getFileContent } = require('../ProjectWorkspaceMa
 
 module.exports.renameALExtensions = async function (/** @type {string} */ prefix, /** @type {string} */ suffix, /** @type {boolean} */ addExtMarker) {
 
-    let standardALfiles = await getALFiles('src/Standard');
-    if (!standardALfiles) return;
-    if (standardALfiles.length === 0)
+    let ALfiles = await getALFiles('');
+    if (!ALfiles) return;
+    if (ALfiles.length === 0)
         return 'No AL files of extension objects found in the src directory.';
 
-    for (const file of standardALfiles) {
+    for (const file of ALfiles) {
         const fileContent = await getFileContent(file);
-        const updatedContent = renameALExtensionObject(fileContent, prefix, suffix, addExtMarker);
-        if (updatedContent !== fileContent) {
-            // Write the updated content back to the file
-            await writeFile(file, updatedContent);
+        if (fileContent.startsWith('tableextension ') || fileContent.startsWith('pageextension ') || fileContent.startsWith('reportextension ') || fileContent.startsWith('enumextension ')) {
+            const updatedContent = renameALExtensionObject(fileContent, prefix, suffix, addExtMarker);
+            if (updatedContent !== fileContent) {
+                // Write the updated content back to the file
+                await writeFile(file, updatedContent);
+            }
         }
     }
     return 'Extension objects are renamed.';

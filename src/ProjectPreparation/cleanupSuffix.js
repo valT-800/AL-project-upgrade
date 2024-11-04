@@ -1,10 +1,10 @@
 const { getALFiles, writeAndSaveFile, getDocumentErrors, getFileContent, getTextDocumentFromFilePath } = require('../ProjectWorkspaceManagement/workspaceMgt.js');
 
 module.exports.cleanupSuffix = async function (/** @type {string} */ suffix) {
-    const ALfiles = await getALFiles('src');
+    const ALfiles = await getALFiles('');
     if (!ALfiles) return;
     if (ALfiles.length === 0)
-        return 'No AL files found in the src directory.';
+        return 'No AL files found in the workspace.';
 
     // Declare when any files have been changed
     let changed = false;

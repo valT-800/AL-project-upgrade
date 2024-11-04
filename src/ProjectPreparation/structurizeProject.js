@@ -1,4 +1,4 @@
-const { createFolder, folderExists, getAllFiles, moveFile } = require("../ProjectWorkspaceManagement/workspaceMgt");
+const { createFolder, folderExists, getAllFiles, moveFile, getFileContent } = require("../ProjectWorkspaceManagement/workspaceMgt");
 
 module.exports.structurizeProject = async function () {
 
@@ -18,32 +18,33 @@ module.exports.structurizeProject = async function () {
     if (files.length === 0) return 'No files found in the workspace!';
     // Go through every file
     for (const file of files) {
+        const fileContent = await getFileContent(file);
         // Distribute files into the required folders by the Simplanova template
-        if (file.endsWith('.Table.al')) {
+        if (fileContent.startsWith('table ')) {
             folderExist = await folderExists('SRC/Custom/Tables');
             if (!folderExist)
                 createFolder('SRC/Custom/Tables');
             moveFile(file, 'SRC/Custom/Tables');
-        } else if (file.endsWith('.Page.al')) {
+        } else if (fileContent.startsWith('page ')) {
             folderExist = await folderExists('SRC/Custom/Pages');
             if (!folderExist) createFolder('SRC/Custom/Pages');
             moveFile(file, 'SRC/Custom/Pages');
-        } else if (file.endsWith('.Codeunit.al')) {
+        } else if (fileContent.startsWith('codeunit ')) {
             folderExist = await folderExists('SRC/Custom/Codeunits');
             if (!folderExist) createFolder('SRC/Custom/Codeunits');
             moveFile(file, 'SRC/Custom/Codeunits');
         }
-        else if (file.endsWith('.XmlPort.al')) {
+        else if (fileContent.startsWith('xmlport ')) {
             folderExist = await folderExists('SRC/Custom/XmlPorts');
             if (!folderExist) createFolder('SRC/Custom/XmlPorts');
             moveFile(file, 'SRC/Custom/XmlPorts');
         }
-        else if (file.endsWith('.Query.al')) {
+        else if (fileContent.startsWith('query ')) {
             folderExist = await folderExists('SRC/Custom/Queries');
             if (!folderExist) createFolder('SRC/Custom/Queries');
             moveFile(file, 'SRC/Custom/Queries');
         }
-        else if (file.endsWith('.Report.al')) {
+        else if (fileContent.startsWith('report ')) {
             folderExist = await folderExists('SRC/Custom/Reports');
             if (!folderExist) createFolder('SRC/Custom/Reports');
             moveFile(file, 'SRC/Custom/Reports');
@@ -62,11 +63,11 @@ module.exports.structurizeProject = async function () {
             if (!folderExist) createFolder('SRC/Custom/Reports/WordLayouts');
             moveFile(file, 'SRC/Custom/Reports/WordLayouts');
         }
-        else if (file.endsWith('.PageExt.al')) {
+        else if (fileContent.startsWith('pageextension ')) {
             if (!folderExist) createFolder('SRC/Standard/PageExtensions');
             moveFile(file, 'SRC/Standard/PageExtensions');
         }
-        else if (file.endsWith('.TableExt.al')) {
+        else if (fileContent.startsWith('tableextension ')) {
             if (!folderExist) createFolder('SRC/Standard/TableExtensions');
             moveFile(file, 'SRC/Standard/TableExtensions');
         }

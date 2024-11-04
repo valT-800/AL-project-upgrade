@@ -5,33 +5,20 @@ const fs = require('fs');
 
 module.exports.addPrefix1 = async function (/** @type {string} */ prefix) {
 
-    const customALfiles = await getALFiles('src/Custom');
-    const standardALfiles = await getALFiles('src/Standard');
-    if (!customALfiles && !standardALfiles) return;
-    if (customALfiles.length === 0 && standardALfiles.length === 0)
+    const ALfiles = await getALFiles('');
+    if (!ALfiles) return;
+    if (ALfiles.length === 0)
         return 'No AL files found in the src directory.';
 
     // Declare when any files have been changed
     let changed = false;
 
-    // Go through every src/Custom directory file
-    for (const file of customALfiles) {
-        const fileContent = await getFileContent(file);
-        const updatedContent = addPrefixToALObjectName(fileContent, prefix);
-        if (updatedContent !== fileContent) {
-            // Write the updated content back to the file
-            await writeAndSaveFile(file, updatedContent);
-            // Rename the file with prefix added
-            //await addPrefixToFile(file, prefix);
-            // Declare file modification
-            changed = true;
-        }
-    }
-    // Go through every src/Standard directory file
-    for (const file of standardALfiles) {
+    // Go through every file
+    for (const file of ALfiles) {
         const fileContent = await getFileContent(file);
         let updatedContent = addPrefixToALObjectName(fileContent, prefix);
-        updatedContent = addPrefixToTableFields(updatedContent, prefix);
+        if (fileContent.startsWith('tableextension '))
+            updatedContent = addPrefixToTableFields(updatedContent, prefix);
         if (fileContent.startsWith('pageextension '))
             updatedContent = addPrefixToActions(updatedContent, prefix);
         if (fileContent.startsWith('report '))
@@ -54,15 +41,15 @@ module.exports.addPrefix1 = async function (/** @type {string} */ prefix) {
 
 module.exports.addPrefix2 = async function (/** @type {string} */ prefix) {
 
-    const ALfiles = await getALFiles('src');
+    const ALfiles = await getALFiles('');
 
     if (ALfiles.length === 0)
-        return 'No AL files found in the src directory.';
+        return 'No AL files found in the workspace.';
 
     // Declare when any files have been changed
     let changed = false;
 
-    // Go through every src directory file
+    // Go through every file
     for (const file of ALfiles) {
         const fileContent = await getFileContent(file);
         // Add prefix first to missing object references

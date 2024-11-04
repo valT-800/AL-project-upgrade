@@ -1,16 +1,16 @@
 const { getALFiles, writeFile, getFileContent } = require('../ProjectWorkspaceManagement/workspaceMgt.js');
 
 module.exports.changeReportsLayoutPath = async function () {
-    const ALfiles = await getALFiles('src');
-    if (!ALfiles) return;
-    if (ALfiles.length === 0)
-        return 'No AL files found in the src directory.';
+    const ALReportfiles = await getALFiles('src/Custom/Reports');
+    if (!ALReportfiles) return;
+    if (ALReportfiles.length === 0)
+        return;
 
     // Declare when any files have been changed
     let changed = false;
 
-    // Go through every src directory AL file
-    for (const file of ALfiles) {
+    // Go through every custom report file
+    for (const file of ALReportfiles) {
         const fileContent = await getFileContent(file);
         const updatedContent = changeLayoutPath(fileContent);
         if (updatedContent !== fileContent) {
