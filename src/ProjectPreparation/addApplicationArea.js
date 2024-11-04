@@ -34,7 +34,8 @@ function addApplicationAreaToPageObjects(content) {
     //Regular expressions to match pages, reports, fields, actions, and parts;
     const objectPattern = /\b(page|report)[^{]*\{[^{]*\{/g;
     const fieldPattern = /\bfield\([^;]*;\s*("[^"]+"|\w+\.("[^"]+"|\w+)|\w+)\s*\)([^{]*)\{[^}]*\}/g;
-    const othersPattern = /\b(action|part|systempart)\([^)]*\)([^{]*)\{[^}]*\}/g;
+    const actionPattern = /\baction\(("[^"]+"|\w+)\)([^{]*)\{[^}]*\}/g;
+    const partPattern = /\b(part|systempart)\([^;]*;\s*("[^"]+"|\w+)\)([^{]*)\{[^}]*\}/g;
 
     // Add ApplicationArea = All; to the page or report that has UsageCategory
     let updatedContent = content.replace(objectPattern, (match) => {
@@ -57,8 +58,10 @@ function addApplicationAreaToPageObjects(content) {
 
     // Add ApplicationArea = All; to the page fields
     updatedContent = updatedContent.replace(fieldPattern, (match, m, m2, space) => addApplicationArea(match, space));
-    // Add ApplicationArea = All; to the actions and parts
-    updatedContent = updatedContent.replace(othersPattern, (match, m, space) => addApplicationArea(match, space));
+    // Add ApplicationArea = All; to the actions
+    updatedContent = updatedContent.replace(actionPattern, (match, m, space) => addApplicationArea(match, space));
+    // Add ApplicationArea = All; to the parts
+    updatedContent = updatedContent.replace(partPattern, (match, m, m2, space) => addApplicationArea(match, space));
 
     return updatedContent;
 }
