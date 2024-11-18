@@ -326,7 +326,7 @@ function addSuffixToReportLayouts(content, suffix) {
 function addSuffixToProcedures(content, suffix) {
 
     // Regex pattern for procedures
-    const procedurePattern = /\bprocedure\s+("[^"]+"|\w+)\s+\(/g;
+    const procedurePattern = /\bprocedure\s+("[^"]+"|\w+)\s*\(/g;
 
     let updatedContent = content.replace(procedurePattern, (match, procedureName) => {
         if (!procedureName.endsWith(`${suffix}`) && !procedureName.endsWith(`${suffix}"`)) {

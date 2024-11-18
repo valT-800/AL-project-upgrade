@@ -339,7 +339,7 @@ function addPrefixToLayouts(content, prefix) {
 function addPrefixToProcedures(content, prefix) {
 
     // Regex pattern for procedures
-    const procedurePattern = /\bprocedure\s+("[^"]+"|\w+)\s+\(/g;
+    const procedurePattern = /\bprocedure\s+("[^"]+"|\w+)\s*\(/g;
 
     let updatedContent = content.replace(procedurePattern, (match, procedureName) => {
         if (!procedureName.startsWith(`${prefix}`) && !procedureName.startsWith(`"${prefix}`)) {
