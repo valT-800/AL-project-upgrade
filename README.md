@@ -19,7 +19,8 @@ To see commands press _Ctrl + Shift + P_ and enter _SPLN:_
 
 ### Commands
 
-* `SPLN: Prepare project for upgrade` - does several things: structurizes converted to AL files placed in the root of the project; adds "ApplicationArea = All" property to all relevant code parts; changes report layout paths; renames object extensions with objects name.
+* `SPLN: Prepare project for upgrade` - does several things: structurizes all AL and report layout files placed in the project by Simplanova template; adds "ApplicationArea = All" property to all relevant code parts; changes report layout paths; renames object extensions.
+* `SPLN: Add Application Area All in active project` - adds "ApplicationArea = All" property to all relevant code parts.
 * `SPLN: General refactoring in active project` - resolves some common breaking change errors/warnings in the project files.
 * `SPLN: General refactoring in active files` - resolves some common breaking change errors/warnings in only opened files.
 * `SPLN: Add Suffix part 1` - adds Suffix to all relevant code parts and remembers Suffix value for father use.
@@ -35,16 +36,17 @@ To see commands press _Ctrl + Shift + P_ and enter _SPLN:_
 
 ### SPLN: Prepare project for upgrade
 ---
-⚠️ **Warning:** Before running the command make sure you structurized files yourself or put all the files into the root of the project.
-
 Preparing the project consists of structurizing the files if they are not, adding ApplicationArea = All property, changing report layouts path and renaming extension objects.
 
 The ApplicationArea property will be added to all custom page and pageextension fields, request page fields of reports and xmlports, and also to reports and pages that have UsageCategory property set. The property won't be added when the code part already has it.
 
-To rename object extensions the system will ask you if you want to add affix to object extension name and if you want to add extension marker ("Ext.").
+To rename object extensions the system will ask you if you want to add affix to object extension name, extension marker ("Ext.") and do it without special characters and spaces, which is reccommended to reduce the number of errors associated with exceeding of 30 allowed characters.
 
 ![alt text](images/image-6.png)
-![alt text](images/image-11.png)
+
+Don't be afraid of such error it could appear when some file has bad syntax or comments before object is assigned.
+
+![alt text](images/image-7.png)
 
 <br>
 
@@ -96,7 +98,7 @@ Both commands work almost the same.
 At first you will be asked to enter affix.
 Command will add provided affix to all object names, table extension fields and procedures, pageextension actions and procedures, report layouts.
 
-⚠️ **Warning:** Command won't add affix to pageextension custom fields, this action does `SPLN: Add Suffix part 2. Resolve errors` and `SPLN: Add Prefix part 2. Resolve errors`.
+⚠️ **Warning:** Command won't add affix to pageextension custom fields, this action does `SPLN: Add Suffix part 2. Resolve errors` and `SPLN: Add Prefix part 2. Resolve errors`. Affix won't be added correctly if it will have special characters except space or underscore(_).
 
 💡 **Tip:** Before running this command would recommend to run first `AZ AL Dev Tools: Remove 'with' usage category from Active Project` or at least remove "NoImplicitWith" feature from manifest file (app.json) to make step 2 be more accurate in resolving erros.
 
@@ -109,7 +111,7 @@ Command will add provided affix to all object names, table extension fields and 
 Both commands work almost the same. 
 Command will add affix in code where this errors appear: '..is missing..'; '..is not found in the target..'; '..does not contain a definition for..'; '..does not exist..'
 
-⚠️ **Warning 1:** In every new VS Code session run step 1 first or you will receive an error. Step 1 not also adds affix, but remembers affix value for other commands. 
+⚠️ **Warning 1:** In every new VS Code session run step 1 first or you will receive an error. Step 1 not only adds affix, but remembers affix value for other commands. 
 ⚠️ **Warning 2:** Sometimes this command could mistakenly add affix to the code where errors appear because of the different reason than missing an affix. That's why after this command you need to run `SPLN: Add Suffix part 3. Clean up!` and `SPLN: Add Prefix part 3. Clean up!`.
 ⚠️ **Known issues:** Command do not cover: erors with non latin letters; errors in lines that dublicates in the file code; weird code syntax; files placed in the wrong spot; files having not a standard name.
 
@@ -126,7 +128,7 @@ _Error message:_
 Both commands work almost the same. 
 Command will remove affix from code where added affix din't resolve an error.
 
-⚠️ **Warning:** In every new VS Code session run step 1 first or you will receive an error. Step 1 not also adds affix, but remembers affix value for other commands.
+⚠️ **Warning:** In every new VS Code session run step 1 first or you will receive an error. Step 1 not only adds affix, but remembers affix value for other commands.
 
 📝 **Note:** Almost always should be ran more than once!
 

@@ -4,7 +4,7 @@
   "displayName": "Project Upgrade Preparation",
   "icon": "./simplanovalogo.jpg",
   "description": "Project Upgrade Preparation tool will help you to make all needed project preparations to start project upgrade to extensions",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "engines": {
     "vscode": "^1.93.0"
   },
@@ -16,20 +16,8 @@
   "contributes": {
     "commands": [
       {
-        "command": "extension.addRecReference",
-        "title": "SPLN: Add Record reference in active project"
-      },
-      {
-        "command": "extension.cleanupRecReference",
-        "title": "SPLN: Add Record reference in active project. Clean up!"
-      },
-      {
-        "command": "extension.addRecReferenceInActiveFiles",
-        "title": "SPLN: Add Record reference in active files"
-      },
-      {
-        "command": "extension.cleanupRecReferenceInActiveFiles",
-        "title": "SPLN: Add Record reference in active files. Clean up!"
+        "command": "extension.addApplicationArea",
+        "title": "SPLN: Add Application Area in active project"
       },
       {
         "command": "extension.projectPrep",

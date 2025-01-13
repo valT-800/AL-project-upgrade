@@ -31,6 +31,7 @@ function changeLayoutPath(content) {
     const layoutPattern = /\b(RDLCLayout|WordLayout|ExcelLayout)\s*=\s*([^;]+);/gi;
     let updatedContent = content.replace(layoutPattern, (match, layoutType, layoutPath) => {
         if (!layoutPath.includes('./SRC/Custom/Reports/')) {
+            if (layoutType == 'RDLCLayout') layoutType = 'RdlcLayout'
             return match.replace(layoutPath, `'./SRC/Custom/Reports/${layoutType}s/${layoutPath.slice(3)}`);
         }
         return match;
