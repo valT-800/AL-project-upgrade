@@ -39,6 +39,7 @@ async function removePrefixCausingAnError(file, content, prefix) {
         errors.push('is not recognized as a valid type');
         errors.push('The source of a Column or Filter must be a field defined on the table referenced by its parent DataItem');
         errors.push('must be a member');
+        errors.push('is not found in the target');
         const document = await getTextDocumentFromFilePath(file);
         const diagnostics = await getDocumentErrors(document, errors);
         // End function when no errors found
@@ -58,7 +59,20 @@ async function removePrefixCausingAnError(file, content, prefix) {
             // Remove prefix when from error causer
             if (errorSnippet.includes(`${prefix}`)) {
                 let updatedSnippet = errorSnippet.replace(`${prefix}`, '');
+                if (prefix.includes(' ') && !updatedSnippet.match(/[^a-zA-Z_"]/g))
+                    updatedSnippet = updatedSnippet.slice(1, -1);
                 updatedLine = errorLine.replace(errorSnippet, updatedSnippet);
+                // Search for the custom page and pageextension fields, and remove suffix from the name
+                const pageFieldPattern = /\bfield\s*\(\s*("[^"]*"|\w+)\s*;\s*("[^"]*"|\w+|Rec.("[^"]*"|\w+))\s*\)/gi;
+                updatedLine = updatedLine.replace(pageFieldPattern, (match, fieldName, fieldSource) => {
+                    if (fieldName.includes(prefix)) {
+                        let newFieldName = fieldName.replace(prefix, '');
+                        if (prefix.includes(' ') && !newFieldName.match(/[^a-zA-Z_"]/g))
+                            newFieldName = newFieldName.slice(1, -1);
+                        return match.replace(fieldName, newFieldName);
+                    }
+                    return match;
+                });
             }
             updatedContent = updatedContent.replace(errorLine, updatedLine);
 
