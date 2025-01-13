@@ -50,17 +50,11 @@ module.exports.getAllFiles = async function () {
         vscode.window.showErrorMessage('No workspace folder is open!');
         return;
     }
-    let files = [];
-    // Read the directory contents
-    const dirents = await fs.promises.readdir(workspaceFolders[0].uri.fsPath, { withFileTypes: true });
-    for (const dirent of dirents) {
-        const fullPath = path.join(workspaceFolders[0].uri.fsPath, dirent.name);
-        if (dirent.isFile()) {
-            // Add the AL file to the list
-            files.push(fullPath);
-        }
-    }
-    return files;
+    try {
+        const directory = path.normalize(workspaceFolders[0].uri.fsPath);
+        const files = await collectFiles(directory);
+        return files;
+    } catch { return; }
 }
 
 /**
@@ -85,6 +79,31 @@ module.exports.getOpenedALDocuments = function () {
 
 module.exports.collectALFiles = async function (/** @type {string} */ directory) {
     await collectALFiles(directory);
+}
+/**
+ * Collect files recursively
+ * @param {string} directory
+ */
+async function collectFiles(directory) {
+    let files = [];
+
+    // Read the directory contents
+    const dirents = await fs.promises.readdir(directory, { withFileTypes: true });
+
+    for (const dirent of dirents) {
+        const fullPath = path.join(directory, dirent.name);
+
+        if (dirent.isDirectory()) {
+            // Recursively collect files from subdirectories
+            const subDirFiles = await collectFiles(fullPath);
+            files = files.concat(subDirFiles);
+        } else if (dirent.isFile() && (fullPath.endsWith('.al') || fullPath.endsWith('.rdlc') || fullPath.endsWith('.docx'))) {
+            // Add the file to the list
+            files.push(fullPath);
+        }
+    }
+
+    return files;
 }
 
 /**
