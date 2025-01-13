@@ -2,20 +2,19 @@ const { createFolder, folderExists, getAllFiles, moveFile, getFileContent } = re
 
 module.exports.structurizeProject = async function () {
 
+    // Get all files stored in project folder
+    const files = await getAllFiles();
+    if (!files) return;
+    if (files.length === 0) return 'No files found in the workspace!';
     // Create src folder if it not exists
     let folderExist = await folderExists('SRC');
     if (!folderExist) createFolder('SRC');
     // Create folder, when it not exists, for custom objects or stop the function
     folderExist = await folderExists('SRC/Custom');
     if (!folderExist) createFolder('SRC/Custom');
-    else return;
     // Create folder, when it not exists, for standard object extensions and copies or stop the function
     folderExist = await folderExists('SRC/Standard');
     if (!folderExist) createFolder('SRC/Standard');
-    else return;
-    // Get all files stored in project root folder
-    const files = await getAllFiles();
-    if (files.length === 0) return 'No files found in the workspace!';
     // Go through every file
     for (const file of files) {
         const fileContent = await getFileContent(file);
